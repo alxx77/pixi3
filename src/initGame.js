@@ -34,28 +34,18 @@ export async function InitGame() {
   globalThis.__PIXI_STAGE__ = state.stage
   globalThis.__PIXI_RENDERER__ = renderer
 
-  //used for tween delta correction
-  let startTime
-
+  
   //new ticker
   const ticker = new Ticker()
   ticker.add((delta) => {
     //renderer
     renderer.render(state.stage)
 
-    if (!startTime) {
-      startTime = Date.now()
-    }
-
-    const elapsedTime = Date.now() - startTime
-
     //correct for delta
-    TWEEN.update(elapsedTime)
+    TWEEN.update(ticker.deltaTime)
   })
 
   ticker.start()
-
-  state.ticker = ticker
 
   //init assets
   await initAssets()

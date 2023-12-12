@@ -66,7 +66,7 @@ export class Grid {
       }
 
       //spin reel
-      promises.push(reels[reelId].spinReel(40))
+      promises.push(reels[reelId].spinReel2(3))
     }
 
     //wait for all reels to stop
