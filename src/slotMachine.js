@@ -77,7 +77,7 @@ export class SlotMachine {
           setTimeout(() => {
             console.log("play round pause")
             resolve()
-          }, 1)
+          }, 750)
         })
       }
     }
