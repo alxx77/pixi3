@@ -17,8 +17,10 @@ export class Grid {
     this.reels = []
 
     const mask = new Sprite(Texture.WHITE)
-    mask.width = 1315
+    mask.name = "Grid mask"
+    mask.width = 1225
     mask.height = 1225
+    mask.x = 10
 
     this.container.addChild(mask)
     this.container.mask = mask

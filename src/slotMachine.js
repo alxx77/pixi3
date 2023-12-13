@@ -9,6 +9,7 @@ import { getRounds } from "./server.js"
 import { symbolList } from "./initAssets.js"
 import { Winfeedback } from "./winFeedback.js"
 import { Spine } from "pixi-spine"
+import { resize } from "./initGame.js"
 
 const reelIds = [0, 1, 2, 3, 4]
 
@@ -34,12 +35,12 @@ export class SlotMachine {
     //initialize grid
     this.grid.init()
 
-    this.grid.container.scale.set(0.8)
-    this.grid.container.x = 100
+    //this.grid.container.scale.set(0.8)
+    //this.grid.container.x = 100
 
     //spin button
     const spinButton = new Sprite(utils.TextureCache["spin_button"])
-    spinButton.position.set(460, 1025)
+    spinButton.position.set(460, 1300)
     spinButton.scale.set(0.5)
     spinButton.eventMode = "static"
     spinButton.on("mousedown", () => {
@@ -48,6 +49,9 @@ export class SlotMachine {
       this.play()
     })
     this.stage.addChild(spinButton)
+
+    resize()
+
   }
 
   //get random symbols stripe
@@ -85,7 +89,7 @@ export class SlotMachine {
     state.isPlayingRound = false
     console.log("play finished")
 
-    const wf = new Winfeedback("win",this.stage)
+    //const wf = new Winfeedback("win",this.stage)
 
     //wf.spine = new Spine(state.spineRsc.winfeedback_spine)
     //wf.spine.state.setAnimation(0, 'megawin_loop_fire', true)
