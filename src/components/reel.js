@@ -1,32 +1,40 @@
 import { SmartContainer } from "./smartContainer.js"
-import { BlurFilter, Ticker } from "pixi.js"
-
+import { BlurFilter, Container, Ticker, Sprite, Texture } from "pixi.js"
 import { Symbol } from "./symbol.js"
-import { REEL_X_OFFSET, SYMBOL_HEIGHT } from "./initAssets.js"
-import { state } from "./state.js"
+import { REEL_X_OFFSET, SYMBOL_HEIGHT, SYMBOL_WIDTH } from "../initAssets.js"
 
 //linear interpolation
 const lerp = (x, y, a) => x * (1 - a) + y * a
 
-export class Reel {
+export class Reel extends Container {
   constructor(grid, reelId) {
+    super()
     this.grid = grid
-    this.container = new SmartContainer()
-    this.container.name = "reel"
-    this.grid.container.addChild(this.container)
+    this.name = "reel " + reelId
+    this.grid.addChild(this)
     this.symbols = []
     this.reelId = reelId
-    this.xOffset = reelId * REEL_X_OFFSET + 10
+    this.xOffset = reelId * REEL_X_OFFSET
     this.reelHeight = SYMBOL_HEIGHT * 5
 
     this.blurFilter = new BlurFilter(1)
+
+    const mask = new Sprite(Texture.WHITE)
+    mask.name = "Reel mask"
+    mask.width = SYMBOL_WIDTH
+    mask.height = SYMBOL_HEIGHT * 5
+
+    this.addChild(mask)
+    this.mask = mask
 
     this.init()
   }
 
   init() {
     //set x offset
-    this.container.x = this.xOffset
+    this.x = this.xOffset
+    //this.height = this.reelHeight
+    //this.y = SYMBOL_HEIGHT*-1
   }
 
   //update symbols
@@ -35,7 +43,7 @@ export class Reel {
     //for each symbol name on stripe...
     symbolStripe.forEach((symbolName, idx) => {
       //create new symbol
-      const newSymbol = new Symbol(symbolName, this.container)
+      const newSymbol = new Symbol(symbolName, this)
       //get correct y position
       newSymbol.y = (-baseHeigth - idx + 5) * SYMBOL_HEIGHT
       //push into reel symbols
@@ -43,7 +51,7 @@ export class Reel {
     })
   }
 
-  async spinReel2(speed) {
+  async spinReel(speed) {
     //total number of symbol shifts
     const shiftCount = this.symbols.length - 7
 
@@ -55,8 +63,8 @@ export class Reel {
     const ySoftLandingMoveUpTarget = SYMBOL_HEIGHT / 2
     const ySoftLandingFinalMoveDownTarget = SYMBOL_HEIGHT / 4
 
+    //generator return value
     let step = null
-    let counter = 0
     let ticker = new Ticker()
 
     let g = new this.performMove(0, 0, 0, ySoftMoveUpTarget, speed / 2)
@@ -204,7 +212,6 @@ export class Reel {
 
     //loop until target is reached
     while (Math.abs(remainingPathX) > 0 || Math.abs(remainingPathY) > 0) {
-
       //movement done
       pathYPerformed = remainingPathY / initYDist
 
@@ -234,7 +241,7 @@ export class Reel {
       //nominal step (non - time adjusted)
       nominalDX = speed * 10 * speedCorrection
       nominalDY = speed * 10 * speedCorrection
-      
+
       //time-adjusted steps
       actualDX = nominalDX * delta
       actualDY = nominalDY * delta

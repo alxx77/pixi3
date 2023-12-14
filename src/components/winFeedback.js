@@ -1,5 +1,5 @@
 
-import { SmartContainer } from "./smartContainer.js"
+import { SmartContainer } from "../smartContainer.js"
 
 export class Winfeedback extends SmartContainer {
   constructor(name, parentContainer) {

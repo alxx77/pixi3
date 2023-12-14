@@ -19,5 +19,4 @@ export class Symbol extends SmartContainer {
     this.sprite = sprite
     this.addChild(sprite)
   }
-
 }

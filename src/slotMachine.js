@@ -1,57 +1,60 @@
-import { Sprite, utils } from "pixi.js"
-
-import { Grid } from "./grid.js"
+import { Grid } from "./components/grid.js"
 
 import { state } from "./state.js"
 
 import { getRounds } from "./server.js"
 
 import { symbolList } from "./initAssets.js"
-import { Winfeedback } from "./winFeedback.js"
-import { Spine } from "pixi-spine"
-import { resize } from "./initGame.js"
+
+import { Background } from "./components/background.js"
+import { GamePanel } from "./components/gamePanel.js"
 
 const reelIds = [0, 1, 2, 3, 4]
 
+
+
 export class SlotMachine {
-  constructor(stage) {
-    this.stage = stage
+  constructor() {
+    this.layout = state.layout
     state.slotMachine = this
   }
 
   init() {
-    //initialize grid
-    this.grid = new Grid(this)
-    state.grid = this.grid
-
     //parse initial symbol stripes
     state.initialStripes = []
     state.isPlayingRound = false
-
     reelIds.forEach(() => {
       state.initialStripes.push(this.getSymbolStripe(7))
     })
 
+    //set initial layout container size
+    this.layout.width = document.documentElement.clientWidth
+    this.layout.height = document.documentElement.clientHeight
+
+    //initialize background
+    this.background = new Background()
+    this.layout.addChild(this.background)
+    this.background.init()
+
     //initialize grid
+    this.grid = new Grid()
+    this.layout.addChild(this.grid)
     this.grid.init()
 
-    //this.grid.container.scale.set(0.8)
-    //this.grid.container.x = 100
+    //initialize game panel
+    this.gamePanel = new GamePanel()
+    this.layout.addChild(this.gamePanel)
+    this.gamePanel.init()
 
-    //spin button
-    const spinButton = new Sprite(utils.TextureCache["spin_button"])
-    spinButton.position.set(460, 1300)
-    spinButton.scale.set(0.5)
-    spinButton.eventMode = "static"
-    spinButton.on("mousedown", () => {
-      console.log("mousedown")
-      state.startClickTimeStamp =  new Date() 
-      this.play()
-    })
-    this.stage.addChild(spinButton)
+    const updateView = this.updateView
 
-    resize()
+    //resize event
+    window.addEventListener("resize", updateView)
 
+    //change device orientation
+    window.addEventListener("orientationchange", updateView)
+
+    updateView()
   }
 
   //get random symbols stripe
@@ -66,7 +69,6 @@ export class SlotMachine {
 
   //play game
   async play() {
-    
     if (state.isPlayingRound === true) return
     state.isPlayingRound = true
     const rounds = getRounds()
@@ -93,7 +95,6 @@ export class SlotMachine {
 
     //wf.spine = new Spine(state.spineRsc.winfeedback_spine)
     //wf.spine.state.setAnimation(0, 'megawin_loop_fire', true)
-
   }
 
   //play 1 round of game
@@ -102,5 +103,18 @@ export class SlotMachine {
     this.grid.updateGridSymbols(round)
     //spin reels
     await this.grid.spinReels()
+  }
+
+  //recalc view
+  updateView = () => {
+    let w = document.documentElement.clientWidth
+
+    let h = document.documentElement.clientHeight
+
+    //resize
+    state.renderer.resize(w, h)
+
+    //update components
+    state.layout.updateLayout(w, h)
   }
 }

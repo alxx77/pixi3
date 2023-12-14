@@ -4,7 +4,6 @@ import * as TWEEN from "@tweenjs/tween.js"
 export class SmartContainer extends PIXI.Container {
   constructor() {
     super()
-
   }
 
   async moveTo(xPos, yPos, speed) {
@@ -32,6 +31,4 @@ export class SmartContainer extends PIXI.Container {
         .start()
     })
   }
-
-
 }
