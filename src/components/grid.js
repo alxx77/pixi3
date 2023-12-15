@@ -16,6 +16,7 @@ export class Grid extends Container {
   }
 
   init() {
+
     //init reels
     reelIds.forEach((reelId) => {
       this.reels.push(new Reel(this, reelId))
@@ -75,7 +76,7 @@ export class Grid extends Container {
 
     //if renderer aspect ratio is wider, game height is first calculated
     if (layoutRatio > gridRatio) {
-      gridHeight = Math.min(height, 1225 * scale)
+      gridHeight = Math.max(height*0.75, 250)
 
       //recalculate width
       gridWidth = gridHeight * gridRatio
