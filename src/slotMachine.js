@@ -2,14 +2,12 @@ import { Grid } from "./components/grid.js"
 
 import { state } from "./state.js"
 
-import { getRounds } from "./server.js"
-
-import { symbolList } from "./initAssets.js"
+import { getResponse,getSymbolStripe } from "./server.js"
 
 import { Background } from "./components/background.js"
 import { GamePanel } from "./components/gamePanel.js"
 
-const reelIds = [0, 1, 2, 3, 4]
+import { reelHeight,reelIds } from "./initGame.js"
 
 
 
@@ -24,7 +22,8 @@ export class SlotMachine {
     state.initialStripes = []
     state.isPlayingRound = false
     reelIds.forEach(() => {
-      state.initialStripes.push(this.getSymbolStripe(7))
+      //+2 needed for hidden bottom and top symbols
+      state.initialStripes.push(getSymbolStripe(reelHeight+2))
     })
 
     //set initial layout container size
@@ -57,31 +56,22 @@ export class SlotMachine {
     updateView()
   }
 
-  //get random symbols stripe
-  getSymbolStripe(stripeLength) {
-    const arr = []
-    for (let index = 0; index < stripeLength; index++) {
-      const symbolName = symbolList[Math.floor(Math.random() * 12)]
-      arr.push(symbolName)
-    }
-    return arr
-  }
-
   //play game
   async play() {
     if (state.isPlayingRound === true) return
     state.isPlayingRound = true
-    const rounds = getRounds()
+    const response = getResponse()
+    state.response = response
+    console.log("play started")
 
-    for (let index = 0; index < rounds.length; index++) {
-      const round = rounds[index]
+    for (let index = 0; index < response.rounds.length; index++) {
+      const round = response.rounds[index]
       await this.playRound(round)
 
       //if not last round put a pause
-      if (index < rounds.length - 1) {
+      if (index < response.rounds.length - 1) {
         await new Promise((resolve) => {
           setTimeout(() => {
-            console.log("play round pause")
             resolve()
           }, 750)
         })

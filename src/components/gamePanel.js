@@ -9,7 +9,6 @@ export class GamePanel extends Container {
 
   init() {
 
-
     const background = new Sprite (Texture.EMPTY)
     background.name ="panel_backg"
     background.width = state.slotMachine.grid.width

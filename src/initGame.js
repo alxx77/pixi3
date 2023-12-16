@@ -7,6 +7,9 @@ import { initAssets } from "./initAssets.js"
 import { state } from "./state.js"
 import { Layout } from "./components/layout.js"
 
+export const reelIds = [0, 1, 2, 3, 4]
+export const reelHeight = 5
+
 export async function InitGame() {
   //canvas
   const canvas1 = document.getElementById("mycanvas1")

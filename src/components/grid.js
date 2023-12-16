@@ -4,6 +4,8 @@ import { Reel } from "./reel.js"
 
 import { state } from "../state.js"
 
+import { getSymbolStripe } from "../server.js"
+
 const reelIds = [0, 1, 2, 3, 4]
 
 const stripeLength = 21
@@ -32,7 +34,7 @@ export class Grid extends Container {
   updateGridSymbols(round) {
     //update reel symbols
     this.reels.forEach((reel) => {
-      const stripe = state.slotMachine.getSymbolStripe(stripeLength)
+      const stripe = getSymbolStripe(stripeLength)
       //insert new round data into stripe, leaving 1 random element at the end of stripe
       //because of soft landing effect
       stripe.splice(stripe.length - 2, 0, ...round.reels[reel.reelId])

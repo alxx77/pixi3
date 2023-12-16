@@ -1,4 +1,3 @@
-import { SmartContainer } from "./smartContainer.js"
 import { BlurFilter, Container, Ticker, Sprite, Texture } from "pixi.js"
 import { Symbol } from "./symbol.js"
 import { REEL_X_OFFSET, SYMBOL_HEIGHT, SYMBOL_WIDTH } from "../initAssets.js"
