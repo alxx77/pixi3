@@ -64,6 +64,8 @@ export class SlotMachine {
     state.response = response
     console.log("play started")
 
+    console.log(response)
+
     for (let index = 0; index < response.rounds.length; index++) {
       const round = response.rounds[index]
       await this.playRound(round)
@@ -73,7 +75,7 @@ export class SlotMachine {
         await new Promise((resolve) => {
           setTimeout(() => {
             resolve()
-          }, 750)
+          }, 10)
         })
       }
     }

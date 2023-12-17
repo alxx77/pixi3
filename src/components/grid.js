@@ -37,7 +37,7 @@ export class Grid extends Container {
       const stripe = getSymbolStripe(stripeLength)
       //insert new round data into stripe, leaving 1 random element at the end of stripe
       //because of soft landing effect
-      stripe.splice(stripe.length - 2, 0, ...round.reels[reel.reelId])
+      stripe.splice(stripe.length - 1, 0, ...round.reels[reel.reelId])
       reel.updateSymbols(stripe)
     })
   }
@@ -56,7 +56,7 @@ export class Grid extends Container {
       }
 
       //spin reel
-      promises.push(reels[reelId].spinReel(3))
+      promises.push(reels[reelId].spinReel(10))
     }
 
     //wait for all reels to stop

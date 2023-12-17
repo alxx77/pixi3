@@ -1,5 +1,4 @@
 import { Assets } from "pixi.js"
-import { state } from "./state.js"
 
 export const SYMBOL_WIDTH = 245
 export const SYMBOL_HEIGHT = 245
@@ -49,6 +48,25 @@ export const symbolList = [
   "H2",
   "H3",
 ]
+
+
+export const symbolWeightMap = new Map([
+  ["L1",1],
+  ["L2",1],
+  ["L3",1],
+  ["L4",1],
+  ["L5",1],
+  ["L6",1],
+  ["M1",3],
+  ["M2",3],
+  ["M3",3],
+  ["H1",5],
+  ["H2",5],
+  ["H3",5],
+])
+
+
+
 
 async function loadAssets() {
   const manifest = {
@@ -109,6 +127,11 @@ async function loadAssets() {
       //     },
       //   ],
       // },
+
+      {
+        name: "background",
+        assets: [{ alias: "main_background", src: "assets/dark-wood-grain-texture_HD.jpg" }],
+      },
     ],
   }
 
@@ -120,6 +143,8 @@ async function loadAssets() {
   await Assets.loadBundle("symbols")
 
   await Assets.loadBundle("buttons")
+
+  await Assets.loadBundle("background")
 
   //const spines = await Assets.loadBundle("spines")
 
