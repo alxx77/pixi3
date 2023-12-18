@@ -1,4 +1,4 @@
-import { Sprite, utils } from "pixi.js"
+import { Sprite, utils, ColorMatrixFilter } from "pixi.js"
 
 import { SmartContainer } from "./smartContainer.js"
 
@@ -9,14 +9,54 @@ export class Symbol extends SmartContainer {
     if (parentContainer) {
       parentContainer.addChild(this)
     }
-    this.sprite = null
-    this.setSprites(new Sprite(utils.TextureCache[name]))
-    // this.spine = new Spine()
-    // this.addChild(this.spine)
+
+    this.reel = parentContainer
+
+    this.sprite = new Sprite(utils.TextureCache[name])
+
+    this.addChild(this.sprite)
+
+    this.brightnessFilter = new ColorMatrixFilter()
   }
 
-  setSprites(sprite) {
-    this.sprite = sprite
-    this.addChild(sprite)
+  showDefaultSprite() {
+    this.sprite.filters = null
+  }
+
+  showHiSprite() {
+    this.brightnessFilter.brightness(1.5)
+    if(!this.sprite.filters){
+      this.sprite.filters = [this.brightnessFilter]
+    }
+  }
+
+  showLowSprite() {
+    this.brightnessFilter.brightness(0.5)
+    if(!this.sprite.filters){
+      this.sprite.filters = [this.brightnessFilter]
+    }
+  }
+
+  async flicker(cycles, timeMs) {
+    for (let i = 0; i < cycles; i++) {
+      this.showHiSprite()
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve()
+        }, timeMs)
+      })
+      await new Promise((resolve) => {
+        this.showLowSprite
+        setTimeout(() => {
+          resolve()
+        }, timeMs)
+      })
+      await new Promise((resolve) => {
+        this.showDefaultSprite()
+        setTimeout(() => {
+          resolve()
+        }, timeMs)
+      })
+    }
   }
 }

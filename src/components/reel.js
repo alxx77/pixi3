@@ -32,8 +32,6 @@ export class Reel extends Container {
   init() {
     //set x offset
     this.x = this.xOffset
-    //this.height = this.reelHeight
-    //this.y = SYMBOL_HEIGHT*-1
   }
 
   //update symbols

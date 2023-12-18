@@ -18,7 +18,6 @@ export class Grid extends Container {
   }
 
   init() {
-
     //init reels
     reelIds.forEach((reelId) => {
       this.reels.push(new Reel(this, reelId))
@@ -63,6 +62,36 @@ export class Grid extends Container {
     await Promise.all(promises)
   }
 
+  AnimateWin = async (round) => {
+    let winSymbols = []
+    const grid = this
+    round.paylines.forEach((pl, plIdx) => {
+      if (pl.win > 0) {
+        pl.line.forEach((i, idx) => {
+          if (i > 0) {
+            winSymbols.push({
+              symbol: grid.reels[plIdx].symbols[idx + 1],
+              win: i,
+            })
+          }
+        })
+      }
+    })
+
+    let promises = []
+
+    for (const winline of winSymbols) {
+      promises.push(winline.symbol.flicker(10, 100))
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve()
+        }, 75 + Math.random()*75)
+      })
+    }
+
+    await Promise.all(promises)
+  }
+
   updateLayout(width, height) {
     // desired w/h ratio of grid
     let gridRatio = 1
@@ -78,7 +107,7 @@ export class Grid extends Container {
 
     //if renderer aspect ratio is wider, game height is first calculated
     if (layoutRatio > gridRatio) {
-      gridHeight = Math.max(height*0.75, 250)
+      gridHeight = Math.max(height * 0.75, 250)
 
       //recalculate width
       gridWidth = gridHeight * gridRatio

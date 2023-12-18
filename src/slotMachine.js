@@ -95,6 +95,12 @@ export class SlotMachine {
     this.grid.updateGridSymbols(round)
     //spin reels
     await this.grid.spinReels()
+
+    //play win if any
+    if (round.winPerRound>0){
+      await this.grid.AnimateWin(round)
+    }
+
   }
 
   //recalc view
