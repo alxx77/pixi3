@@ -31,7 +31,7 @@ export class Symbol extends SmartContainer {
   }
 
   showLowSprite() {
-    this.brightnessFilter.brightness(0.5)
+    this.brightnessFilter.brightness(0.1)
     if(!this.sprite.filters){
       this.sprite.filters = [this.brightnessFilter]
     }

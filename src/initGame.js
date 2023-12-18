@@ -16,6 +16,8 @@ export async function InitGame() {
 
   state.layout = new Layout()
 
+  state.playerBalance = 5000
+
   //renderer
   state.renderer = new Renderer({
     view: canvas1,

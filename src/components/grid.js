@@ -63,33 +63,52 @@ export class Grid extends Container {
   }
 
   AnimateWin = async (round) => {
-    let winSymbols = []
+    let winList = []
     const grid = this
-    round.paylines.forEach((pl, plIdx) => {
-      if (pl.win > 0) {
-        pl.line.forEach((i, idx) => {
-          if (i > 0) {
-            winSymbols.push({
-              symbol: grid.reels[plIdx].symbols[idx + 1],
-              win: i,
-            })
-          }
-        })
-      }
-    })
-
-    let promises = []
-
-    for (const winline of winSymbols) {
-      promises.push(winline.symbol.flicker(10, 100))
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve()
-        }, 75 + Math.random()*75)
+    for (const winPerSymbol of round.paylines) {
+      const win = { data: [] }
+      winPerSymbol.data.forEach((payline, plIdx) => {
+        if (payline.win > 0) {
+          payline.line.forEach((i, idx) => {
+            if (i > 0) {
+              win.data.push({
+                symbol: grid.reels[plIdx].symbols[idx + 1],
+                win: i,
+              })
+            }
+          })
+        }
       })
+      winList.push(win)
     }
 
-    await Promise.all(promises)
+
+
+    //do flickering
+    for (let i = 0; i < winList.length; i++) {
+      let promises = []
+      for (const winline of winList[i].data) {
+        promises.push(winline.symbol.flicker(7, 125))
+        await new Promise((resolve) => {
+          setTimeout(() => {
+            resolve()
+          }, 75 + Math.random() * 75)
+        })
+      }
+
+      //pause between multiple wins if not last win
+      if (i < winList.length - 1) {
+        await new Promise((resolve) => {
+          setTimeout(() => {
+            resolve()
+          }, 75 + Math.random() * 75)
+        })
+      }
+
+      await Promise.all(promises)
+    }
+
+
   }
 
   updateLayout(width, height) {

@@ -2,6 +2,8 @@ import { symbolList, symbolWeightMap } from "./initAssets.js"
 
 import { reelIds, reelHeight } from "./initGame.js"
 
+import { state } from "./state.js"
+
 //get random symbols stripe
 export function getSymbolStripe(stripeLength) {
   const arr = []
@@ -27,11 +29,12 @@ function getRandomFloat() {
 }
 
 //test response
-export function getResponse() {
+export function getResponse(betAmount) {
   const response = {}
 
   //response
-  response.playerStartBalance = 5000
+  response.playerStartBalance = state.playerBalance - betAmount
+  response.betAmount = betAmount
   response.playerEndBalance = 0
   response.rounds = []
   response.totalWin = 0
@@ -59,7 +62,7 @@ export function getResponse() {
       newRound.reels.push(newReel)
     }
 
-    //force win in round 2
+    //force 2 win in round 2
     if (round === 2) {
       newRound.reels[0][0] = "M1"
       newRound.reels[1][1] = "M1"
@@ -67,6 +70,13 @@ export function getResponse() {
       newRound.reels[2][0] = "M1"
       newRound.reels[2][1] = "M1"
       newRound.reels[4][1] = "M1"
+
+      newRound.reels[0][3] = "H1"
+      newRound.reels[0][4] = "H1"
+      newRound.reels[1][4] = "H1"
+      newRound.reels[2][3] = "H1"
+      newRound.reels[2][4] = "H1"
+      newRound.reels[4][4] = "H1"
     }
 
     //check fo wins
@@ -80,14 +90,16 @@ export function getResponse() {
     let winPerRound = 0
 
     //check the list
+    //there might be more that one win per round
     for (const [winSymbol, occ] of Object.entries(countMap)) {
       //if there is 6 or more of a kind
       if (occ >= 6) {
+        //so each win must be separate object
+        const paylinesPerSymbol = { winSymbol, data: [] }
         //create payline matrix
         //for each reel
         for (const reelId of reelIds) {
           const newReelPayline = []
-
           //get payline for a reel
           let winPerLine = 0
           for (const s of newRound.reels[reelId]) {
@@ -103,8 +115,9 @@ export function getResponse() {
             }
           }
           //add payline
-          newRound.paylines.push({ line: newReelPayline, win: winPerLine })
+          paylinesPerSymbol.data.push({ line: newReelPayline, win: winPerLine })
         }
+        newRound.paylines.push(paylinesPerSymbol)
       }
     }
 
@@ -116,7 +129,8 @@ export function getResponse() {
     response.totalWin = response.totalWin + winPerRound
   }
 
-  response.playerEndBalance = response.playerStartBalance + response.totalWin
+  response.playerEndBalance = response.playerStartBalance + (response.totalWin * betAmount)
+  state.playerBalance = response.playerEndBalance
 
   return response
 }

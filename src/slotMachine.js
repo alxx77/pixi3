@@ -60,7 +60,7 @@ export class SlotMachine {
   async play() {
     if (state.isPlayingRound === true) return
     state.isPlayingRound = true
-    const response = getResponse()
+    const response = getResponse(1)
     state.response = response
     console.log("play started")
 
@@ -82,11 +82,6 @@ export class SlotMachine {
 
     state.isPlayingRound = false
     console.log("play finished")
-
-    //const wf = new Winfeedback("win",this.stage)
-
-    //wf.spine = new Spine(state.spineRsc.winfeedback_spine)
-    //wf.spine.state.setAnimation(0, 'megawin_loop_fire', true)
   }
 
   //play 1 round of game
@@ -100,7 +95,6 @@ export class SlotMachine {
     if (round.winPerRound>0){
       await this.grid.AnimateWin(round)
     }
-
   }
 
   //recalc view
