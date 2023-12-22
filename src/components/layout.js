@@ -12,10 +12,7 @@ updateLayout(width,height){
     state.slotMachine.grid.updateLayout(width,height)
     state.slotMachine.background.updateLayout(width,height)
     state.slotMachine.gamePanel.updateLayout(width,height)
+    state.slotMachine.winFeedback.updateLayout(width,height)
 }
-
-
-
-
 
 }

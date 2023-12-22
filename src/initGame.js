@@ -35,15 +35,24 @@ export async function InitGame() {
 
   //new ticker
   const ticker = new Ticker()
-  ticker.add((delta) => {
+
+  ticker.add(() => {
     //renderer
     state.renderer.render(state.layout)
 
     //correct for delta
-    TWEEN.update(ticker.deltaTime)
+    TWEEN.update()
   })
 
   ticker.start()
+
+  //set up user
+  const user ={
+    bet_amt: 1,
+    credit_amt:5000
+  }
+
+  state.user =user
 
   //init assets
   await initAssets()

@@ -71,12 +71,12 @@ export function getResponse(betAmount) {
       newRound.reels[2][1] = "M1"
       newRound.reels[4][1] = "M1"
 
-      newRound.reels[0][3] = "H1"
-      newRound.reels[0][4] = "H1"
-      newRound.reels[1][4] = "H1"
-      newRound.reels[2][3] = "H1"
-      newRound.reels[2][4] = "H1"
-      newRound.reels[4][4] = "H1"
+      // newRound.reels[0][3] = "H1"
+      // newRound.reels[0][4] = "H1"
+      // newRound.reels[1][4] = "H1"
+      // newRound.reels[2][3] = "H1"
+      // newRound.reels[2][4] = "H1"
+      // newRound.reels[4][4] = "H1"
     }
 
     //check fo wins
@@ -133,4 +133,12 @@ export function getResponse(betAmount) {
   state.playerBalance = response.playerEndBalance
 
   return response
+}
+
+export function updateCreditAmount(credit){
+  state.user.credit_amt = credit
+}
+
+export function updateBetAmount(bet){
+  state.user.bet_amt = bet
 }

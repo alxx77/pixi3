@@ -1,12 +1,9 @@
 // Observer
 export class Observer {
-  update(data) {
-    console.log("Received update:", data)
-  }
 }
 
 // Subject
-export class ObserverManager {
+export class Subject {
   constructor() {
     this.observers = []
   }

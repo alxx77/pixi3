@@ -49,24 +49,20 @@ export const symbolList = [
   "H3",
 ]
 
-
 export const symbolWeightMap = new Map([
-  ["L1",1],
-  ["L2",1],
-  ["L3",1],
-  ["L4",1],
-  ["L5",1],
-  ["L6",1],
-  ["M1",3],
-  ["M2",3],
-  ["M3",3],
-  ["H1",5],
-  ["H2",5],
-  ["H3",5],
+  ["L1", 1],
+  ["L2", 1],
+  ["L3", 1],
+  ["L4", 1],
+  ["L5", 1],
+  ["L6", 1],
+  ["M1", 3],
+  ["M2", 3],
+  ["M3", 3],
+  ["H1", 5],
+  ["H2", 5],
+  ["H3", 5],
 ])
-
-
-
 
 async function loadAssets() {
   const manifest = {
@@ -116,21 +112,30 @@ async function loadAssets() {
       },
       {
         name: "buttons",
-        assets: [{ alias: "spin_button", src: "assets/spin_button.png" }],
+        assets: [
+          { alias: "spin_button", src: "assets/spin_button.png" },
+          { alias: "plus_button", src: "assets/plus_button.png" },
+          { alias: "minus_button", src: "assets/minus_button.png" },
+        ],
       },
-      // {
-      //   name: "spines",
-      //   assets: [
-      //     {
-      //       alias: "winfeedback_spine",
-      //       src: "assets/winfeedback/win_feedback@2x.json",
-      //     },
-      //   ],
-      // },
+      {
+        name: "winfeedback",
+        assets: [
+          {
+            alias: "winfeedback_board",
+            src: "assets/winfeedback_board_1.jpg",
+          },
+        ],
+      },
 
       {
         name: "background",
-        assets: [{ alias: "main_background", src: "assets/dark-wood-grain-texture_HD.jpg" }],
+        assets: [
+          {
+            alias: "main_background",
+            src: "assets/dark-wood-grain-texture_HD.jpg",
+          },
+        ],
       },
     ],
   }
@@ -146,9 +151,7 @@ async function loadAssets() {
 
   await Assets.loadBundle("background")
 
-  //const spines = await Assets.loadBundle("spines")
-
-  //state.spineRsc = spines
+  await Assets.loadBundle("winfeedback")
 }
 
 export async function initAssets() {

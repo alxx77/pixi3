@@ -1,15 +1,14 @@
 import { Grid } from "./components/grid.js"
 
-import { state } from "./state.js"
+import { Observer, Subject, state } from "./state.js"
 
-import { getResponse,getSymbolStripe } from "./server.js"
+import { getResponse, getSymbolStripe, updateCreditAmount } from "./server.js"
 
 import { Background } from "./components/background.js"
 import { GamePanel } from "./components/gamePanel.js"
 
-import { reelHeight,reelIds } from "./initGame.js"
-
-
+import { reelHeight, reelIds } from "./initGame.js"
+import { Winfeedback } from "./components/winFeedback.js"
 
 export class SlotMachine {
   constructor() {
@@ -23,7 +22,7 @@ export class SlotMachine {
     state.isPlayingRound = false
     reelIds.forEach(() => {
       //+2 needed for hidden bottom and top symbols
-      state.initialStripes.push(getSymbolStripe(reelHeight+2))
+      state.initialStripes.push(getSymbolStripe(reelHeight + 2))
     })
 
     //set initial layout container size
@@ -45,6 +44,15 @@ export class SlotMachine {
     this.layout.addChild(this.gamePanel)
     this.gamePanel.init()
 
+     //initialize winfeedback
+     this.winFeedback = new Winfeedback()
+     this.layout.addChild(this.winFeedback)
+     this.winFeedback.init()
+     this.winFeedback.observerSubject = new Subject()
+     this.observerWinFeedback = new Observer()
+     this.winFeedback.observerSubject.addObserver(this.observerWinFeedback)
+    
+
     const updateView = this.updateView
 
     //resize event
@@ -53,6 +61,9 @@ export class SlotMachine {
     //change device orientation
     window.addEventListener("orientationchange", updateView)
 
+    //update bet & credit amount
+    this.gamePanel.updateBetText(state.user.bet_amt)
+    this.gamePanel.updateCreditText(state.user.credit_amt)
     updateView()
   }
 
@@ -60,14 +71,21 @@ export class SlotMachine {
   async play() {
     if (state.isPlayingRound === true) return
     state.isPlayingRound = true
-    const response = getResponse(1)
+    const response = getResponse(state.user.bet_amt)
+    //set total win to 0
+    this.gamePanel.updateWinAmountText(0)
     state.response = response
-    console.log("play started")
 
+    //set new credit
+    this.gamePanel.updateCreditText(state.user.credit_amt - state.user.bet_amt)
+
+    console.log("play started")
     console.log(response)
 
     for (let index = 0; index < response.rounds.length; index++) {
       const round = response.rounds[index]
+
+      //play round
       await this.playRound(round)
 
       //if not last round put a pause
@@ -79,6 +97,26 @@ export class SlotMachine {
         })
       }
     }
+
+    //show winfeedback
+    this.winFeedback.showWin(response.totalWin)
+
+    //wait till closed
+    await new Promise(resolve => {
+      this.observerWinFeedback.update = (data)=>{
+        if(data==='closed'){
+          resolve()
+        }
+      } 
+    })
+
+    //update total win
+    this.gamePanel.updateWinAmountText(response.totalWin)
+
+    //update credit
+    updateCreditAmount(response.playerEndBalance)
+    //refresh credit text
+    this.gamePanel.updateCreditText(state.user.credit_amt)
 
     state.isPlayingRound = false
     console.log("play finished")
@@ -92,7 +130,7 @@ export class SlotMachine {
     await this.grid.spinReels()
 
     //play win if any
-    if (round.winPerRound>0){
+    if (round.winPerRound > 0) {
       await this.grid.AnimateWin(round)
     }
   }

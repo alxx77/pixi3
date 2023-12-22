@@ -88,11 +88,11 @@ export class Grid extends Container {
     for (let i = 0; i < winList.length; i++) {
       let promises = []
       for (const winline of winList[i].data) {
-        promises.push(winline.symbol.flicker(7, 125))
+        promises.push(winline.symbol.flicker(3, 25))
         await new Promise((resolve) => {
           setTimeout(() => {
             resolve()
-          }, 75 + Math.random() * 75)
+          }, 15 + Math.random() * 15)
         })
       }
 
@@ -133,7 +133,7 @@ export class Grid extends Container {
     } else {
       //if renderer aspect ratio is more narrow
       //means width is constraining factor and is calculated first
-      gridWidth = Math.min(width, 1225 * scale)
+      gridWidth = Math.max(Math.min(width, 1225 * scale),240)
 
       //recalculate height
       gridHeight = gridWidth / gridRatio
