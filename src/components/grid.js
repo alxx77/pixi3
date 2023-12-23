@@ -133,7 +133,7 @@ export class Grid extends Container {
     } else {
       //if renderer aspect ratio is more narrow
       //means width is constraining factor and is calculated first
-      gridWidth = Math.max(Math.min(width, 1225 * scale),240)
+      gridWidth = Math.max(Math.min(width, 1225 * scale),240)*0.9
 
       //recalculate height
       gridHeight = gridWidth / gridRatio
@@ -150,7 +150,8 @@ export class Grid extends Container {
     if (width > height) {
       this.y = (height - gridHeight) / 4
     } else {
-      this.y = Math.max(height * 0.34 - gridHeight / 2, 0)
+      this.y = (height - gridHeight) / 3
+      //this.y = Math.max(height * 0.34 - gridHeight / 2, 0)
     }
   }
 }

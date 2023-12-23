@@ -9,6 +9,7 @@ export class Layout extends Container{
 
 
 updateLayout(width,height){
+    //first align the grid, then everything else
     state.slotMachine.grid.updateLayout(width,height)
     state.slotMachine.background.updateLayout(width,height)
     state.slotMachine.gamePanel.updateLayout(width,height)

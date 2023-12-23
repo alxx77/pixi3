@@ -36,7 +36,7 @@ export class Winfeedback extends SmartContainer {
     })
 
     //hide container
-    this.visible = false
+    this.scale.set(0)
 
   }
 
@@ -52,7 +52,6 @@ export class Winfeedback extends SmartContainer {
         self.scale.y = self.scale.x
       })
       .onComplete(() => {
-        self.visible = false
         self.observerSubject.notify("closed")
       }).start()
   }
@@ -67,10 +66,6 @@ export class Winfeedback extends SmartContainer {
     .to({ width: [this.grid.width, this.grid.width * 0.5] }, 350)
     .easing(TWEEN.Easing.Exponential.In)
     .interpolation(TWEEN.Interpolation.CatmullRom)
-    .onStart(()=>{
-      self.scale.set(0)
-      self.visible = true
-    })
     .onUpdate(function (value) {
       self.width = value.width
       self.scale.y = self.scale.x
@@ -78,8 +73,10 @@ export class Winfeedback extends SmartContainer {
   }
 
   updateLayout(width, height) {
-    this.width = this.grid.width * 0.5
-    this.scale.y = this.scale.x
+    if(this.scale.x > 0){
+      this.width = this.grid.width * 0.5
+      this.scale.y = this.scale.x
+    }
 
     this.x = this.grid.x + this.grid.width / 2
     this.y = this.grid.y + this.grid.height / 4
