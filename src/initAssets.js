@@ -119,11 +119,15 @@ async function loadAssets() {
         ],
       },
       {
-        name: "winfeedback",
+        name: "winboards",
         assets: [
           {
-            alias: "winfeedback_board",
-            src: "assets/winfeedback_board_1.jpg",
+            alias: "woodboard_lnd",
+            src: "assets/woodboard_lnd.jpg",
+          },
+          {
+            alias: "woodboard_prt",
+            src: "assets/woodboard_prt.jpg",
           },
         ],
       },
@@ -151,7 +155,7 @@ async function loadAssets() {
 
   await Assets.loadBundle("background")
 
-  await Assets.loadBundle("winfeedback")
+  await Assets.loadBundle("winboards")
 }
 
 export async function initAssets() {

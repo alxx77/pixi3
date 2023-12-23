@@ -9,6 +9,7 @@ import { GamePanel } from "./components/gamePanel.js"
 
 import { reelHeight, reelIds } from "./initGame.js"
 import { Winfeedback } from "./components/winFeedback.js"
+import { WinBoard } from "./components/winBoard.js"
 
 export class SlotMachine {
   constructor() {
@@ -51,6 +52,11 @@ export class SlotMachine {
      this.winFeedback.observerSubject = new Subject()
      this.observerWinFeedback = new Observer()
      this.winFeedback.observerSubject.addObserver(this.observerWinFeedback)
+
+     //initialize winboard
+     this.winBoard = new WinBoard()
+     this.layout.addChild(this.winBoard)
+     this.winBoard.init()
     
 
     const updateView = this.updateView

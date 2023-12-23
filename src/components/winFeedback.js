@@ -12,7 +12,7 @@ export class Winfeedback extends SmartContainer {
 
   init() {
     //background
-    this.backgroundSprite = new Sprite(utils.TextureCache["winfeedback_board"])
+    this.backgroundSprite = new Sprite(utils.TextureCache["woodboard_lnd"])
     this.backgroundSprite.anchor.set(0.5)
     this.addChild(this.backgroundSprite)
 

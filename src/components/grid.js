@@ -83,7 +83,6 @@ export class Grid extends Container {
     }
 
 
-
     //do flickering
     for (let i = 0; i < winList.length; i++) {
       let promises = []
@@ -133,7 +132,7 @@ export class Grid extends Container {
     } else {
       //if renderer aspect ratio is more narrow
       //means width is constraining factor and is calculated first
-      gridWidth = Math.max(Math.min(width, 1225 * scale),240)*0.9
+      gridWidth = Math.max(Math.min(width, 1225 * scale),240)*0.8
 
       //recalculate height
       gridHeight = gridWidth / gridRatio
