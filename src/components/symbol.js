@@ -1,4 +1,4 @@
-import { Sprite, utils, ColorMatrixFilter } from "pixi.js"
+import { Sprite, utils, ColorMatrixFilter, Point } from "pixi.js"
 
 import { SmartContainer } from "./smartContainer.js"
 
@@ -17,6 +17,7 @@ export class Symbol extends SmartContainer {
     this.addChild(this.sprite)
 
     this.brightnessFilter = new ColorMatrixFilter()
+
   }
 
   showDefaultSprite() {
@@ -59,4 +60,10 @@ export class Symbol extends SmartContainer {
       })
     }
   }
+
+  getGlobalCenter(){
+    const p = new Point(this.width/2,this.height/2)
+    return this.toGlobal(p)
+  }
+
 }

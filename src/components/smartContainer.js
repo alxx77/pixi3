@@ -20,7 +20,7 @@ export class SmartContainer extends PIXI.Container {
     return new Promise((resolve) => {
       new TWEEN.Tween(this)
         .to({ x: xPos, y: yPos }, totalTime)
-        //.easing(TWEEN.Easing.Quadratic.InOut) // Use quadratic easing for a smoother motion
+        .easing(TWEEN.Easing.Quadratic.InOut) // Use quadratic easing for a smoother motion
         .onUpdate(() => {
           // Optional: Update any additional logic during the tween
         })

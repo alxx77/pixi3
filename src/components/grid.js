@@ -63,25 +63,8 @@ export class Grid extends Container {
   }
 
   AnimateWin = async (round) => {
-    let winList = []
-    const grid = this
-    for (const winPerSymbol of round.paylines) {
-      const win = { data: [] }
-      winPerSymbol.data.forEach((payline, plIdx) => {
-        if (payline.win > 0) {
-          payline.line.forEach((i, idx) => {
-            if (i > 0) {
-              win.data.push({
-                symbol: grid.reels[plIdx].symbols[idx + 1],
-                win: i,
-              })
-            }
-          })
-        }
-      })
-      winList.push(win)
-    }
-
+    //get wining symbols
+    const winList = this.getWinSymbols(round)
 
     //do flickering
     for (let i = 0; i < winList.length; i++) {
@@ -106,8 +89,29 @@ export class Grid extends Container {
 
       await Promise.all(promises)
     }
+  }
 
-
+  //get winning symbols
+  getWinSymbols(round) {
+    const winList = []
+    const grid = this
+    for (const winPerSymbol of round.paylines) {
+      const win = { data: [] }
+      winPerSymbol.data.forEach((payline, plIdx) => {
+        if (payline.win > 0) {
+          payline.line.forEach((i, idx) => {
+            if (i > 0) {
+              win.data.push({
+                symbol: grid.reels[plIdx].symbols[idx + 1],
+                win: i,
+              })
+            }
+          })
+        }
+      })
+      winList.push(win)
+    }
+    return winList
   }
 
   updateLayout(width, height) {
@@ -132,7 +136,7 @@ export class Grid extends Container {
     } else {
       //if renderer aspect ratio is more narrow
       //means width is constraining factor and is calculated first
-      gridWidth = Math.max(Math.min(width, 1225 * scale),240)*0.8
+      gridWidth = Math.max(Math.min(width, 1225 * scale), 240) * 0.8
 
       //recalculate height
       gridHeight = gridWidth / gridRatio

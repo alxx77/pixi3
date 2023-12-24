@@ -15,6 +15,7 @@ updateLayout(width,height){
     state.slotMachine.gamePanel.updateLayout(width,height)
     state.slotMachine.winFeedback.updateLayout(width,height)
     state.slotMachine.winBoard.updateLayout(width,height)
+    state.slotMachine.effects.updateLayout(width,height)
 }
 
 }

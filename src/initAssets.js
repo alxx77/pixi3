@@ -141,6 +141,15 @@ async function loadAssets() {
           },
         ],
       },
+      {
+        name: "fonts",
+        assets: [
+          {
+            alias: "troika",
+            src: "assets/troika.otf",
+          },
+        ],
+      },
     ],
   }
 
@@ -156,6 +165,8 @@ async function loadAssets() {
   await Assets.loadBundle("background")
 
   await Assets.loadBundle("winboards")
+
+  await Assets.loadBundle("fonts")
 }
 
 export async function initAssets() {

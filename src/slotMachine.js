@@ -10,6 +10,7 @@ import { GamePanel } from "./components/gamePanel.js"
 import { reelHeight, reelIds } from "./initGame.js"
 import { Winfeedback } from "./components/winFeedback.js"
 import { WinBoard } from "./components/winBoard.js"
+import { Effects } from "./components/effects.js"
 
 export class SlotMachine {
   constructor() {
@@ -57,6 +58,11 @@ export class SlotMachine {
      this.winBoard = new WinBoard()
      this.layout.addChild(this.winBoard)
      this.winBoard.init()
+
+     //initialize effects
+     this.effects = new Effects()
+     this.effects.init()
+     this.layout.addChild(this.effects)
     
 
     const updateView = this.updateView
@@ -80,8 +86,9 @@ export class SlotMachine {
     const response = getResponse(state.user.bet_amt)
     //set total win to 0
     this.gamePanel.updateWinAmountText(0)
+    this.winBoard.resetBoard()
     state.response = response
-
+    const winRunningTotal = {value:0}
     //set new credit
     this.gamePanel.updateCreditText(state.user.credit_amt - state.user.bet_amt)
 
@@ -92,7 +99,7 @@ export class SlotMachine {
       const round = response.rounds[index]
 
       //play round
-      await this.playRound(round)
+      await this.playRound(round,winRunningTotal)
 
       //if not last round put a pause
       if (index < response.rounds.length - 1) {
@@ -129,7 +136,8 @@ export class SlotMachine {
   }
 
   //play 1 round of game
-  async playRound(round) {
+  async playRound(round,winRunningTotal) {
+
     //update symbols
     this.grid.updateGridSymbols(round)
     //spin reels
@@ -138,6 +146,7 @@ export class SlotMachine {
     //play win if any
     if (round.winPerRound > 0) {
       await this.grid.AnimateWin(round)
+      await this.effects.multiFlyToWinBoard(round,winRunningTotal)
     }
   }
 
