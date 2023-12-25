@@ -112,7 +112,7 @@ export class SlotMachine {
     }
 
     //show winfeedback
-    this.winFeedback.showWin(response.totalWin)
+    this.winFeedback.showWin(response.playerEndBalance-response.playerStartBalance)
 
     //wait till closed
     await new Promise(resolve => {
@@ -124,7 +124,7 @@ export class SlotMachine {
     })
 
     //update total win
-    this.gamePanel.updateWinAmountText(response.totalWin)
+    this.gamePanel.updateWinAmountText(response.playerEndBalance-response.playerStartBalance)
 
     //update credit
     updateCreditAmount(response.playerEndBalance)
