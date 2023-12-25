@@ -73,11 +73,5 @@ export class WinBoard extends Container {
       this.container.x = this.grid.x + this.grid.width / 2
       this.container.y = this.grid.y - this.container.height / 2 - 5
     }
-
-    //this.width = width
-    //this.height = height
-
-    // this.x = 0
-    // this.y = 0
   }
 }

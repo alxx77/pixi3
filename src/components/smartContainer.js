@@ -17,18 +17,29 @@ export class SmartContainer extends PIXI.Container {
     //time required
     let totalTime = totalDist * 10 * (1 / speed)
 
+    //save target position
+    //so dynamic tweening works
+    this.targetPos = { x: xPos, y: yPos }
+
     return new Promise((resolve) => {
-      new TWEEN.Tween(this)
-        .to({ x: xPos, y: yPos }, totalTime)
-        .easing(TWEEN.Easing.Quadratic.InOut) // Use quadratic easing for a smoother motion
-        .onUpdate(() => {
-          // Optional: Update any additional logic during the tween
-        })
-        .onComplete(() => {
-          console.log("Tween completed!")
-          resolve()
-        })
-        .start()
+      this.tween = this.getTween(totalTime)
+
+      this.tween.onComplete(() => {
+        resolve()
+      })
+      this.tween.start()
     })
+  }
+
+  getTween = (totalTime) => {
+    return new TWEEN.Tween(this)
+      .to(this.targetPos, totalTime)
+      .easing(TWEEN.Easing.Quadratic.InOut)
+      .dynamic(true)
+  }
+
+  updateMove(point) {
+    this.targetPos.x = point.x
+    this.targetPos.y = point.y
   }
 }

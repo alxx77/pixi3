@@ -1,6 +1,7 @@
 import { Container, Text, TextStyle, Point } from "pixi.js"
 import { state } from "../state.js"
 import { SmartContainer } from "./smartContainer.js"
+import { fontStyles } from "../variables.js"
 
 export class Effects extends Container {
   constructor() {
@@ -13,31 +14,42 @@ export class Effects extends Container {
   init() {
     this.container = new Container()
     this.addChild(this.container)
-
-    this.multiTextStyle = new TextStyle({
-      fontFamily: "Troika ",
-      fontSize: "64px",
-      fill: "yellow",
-    })
   }
 
-  async multiFlyToWinBoard(round,winRunningTotal) {
+  async multiFlyToWinBoard(round, winRunningTotal) {
     const winList = this.grid.getWinSymbols(round)
     for (let i = 0; i < winList.length; i++) {
       let promises = []
       for (const winline of winList[i].data) {
-        const sc = new SmartContainer()
-        this.container.addChild(sc)
-        const t = new Text(winline.win, this.multiTextStyle)
+        this.flyingMultiContainer = new SmartContainer()
+        this.flyingMultiContainer.name = "flying_multi"
+        this.flyingMultiContainer.scale.set(1.69 * this.grid.scale.x)
+        this.container.addChild(this.flyingMultiContainer)
+        //2 text object to simulate outline font
+        const t = new Text(winline.win, fontStyles.effectsFlyingMulti)
         t.anchor.set(0.5)
+        const to = new Text(winline.win, fontStyles.effectsFlyingMultiOutline)
+        to.anchor.set(0.5)
+        //add to container
+        this.flyingMultiContainer.addChild(to)
+        this.flyingMultiContainer.addChild(t)
+        //get start position
         const symbolPosition = winline.symbol.getGlobalCenter()
-        sc.position.set(symbolPosition.x, symbolPosition.y)
-        sc.addChild(t)
-        let target = this.winBoard.multiText.getGlobalPosition()
-        await sc.moveTo(target.x, target.y, 10)
+        this.flyingMultiContainer.position.set(
+          symbolPosition.x,
+          symbolPosition.y
+        )
+
+        //get actual target position
+        const target = this.getWinboardTargetPosition()
+        await this.flyingMultiContainer.moveTo(
+          target.x,
+          target.y,
+          10 / (0.589 / this.grid.scale.x)
+        )
         winRunningTotal.value += winline.win
         this.winBoard.updateText(winRunningTotal.value)
-        sc.destroy()
+        this.flyingMultiContainer.destroy()
         await new Promise((resolve) => {
           setTimeout(() => {
             resolve()
@@ -55,6 +67,7 @@ export class Effects extends Container {
       }
 
       await Promise.all(promises)
+      this.flyingMultiContainer = null
       const children = this.container.removeChildren()
       for (const child of children) {
         child.destroy()
@@ -62,8 +75,28 @@ export class Effects extends Container {
     }
   }
 
+  //get actual winboard position
+  getWinboardTargetPosition() {
+    return this.winBoard.multiText.getGlobalPosition()
+  }
+
+  //update target when resizing screen
+  updateFlyingMultiTargetPosition() {
+    if (this.flyingMultiContainer) {
+      this.flyingMultiContainer.updateMove(this.getWinboardTargetPosition())
+    }
+  }
+
+  //update text size
+  updateTextSize() {
+    const fm = this.container.getChildByName("flying_multi")
+    if (fm) {
+      fm.scale.set(1.69 * this.grid.scale.x)
+    }
+  }
+
   updateLayout(width, height) {
-    this.width = width
-    this.height = height
+    this.updateTextSize()
+    this.updateFlyingMultiTargetPosition()
   }
 }
