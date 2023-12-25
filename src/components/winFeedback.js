@@ -1,9 +1,9 @@
 import { Sprite, utils, TextStyle, Text, Container } from "pixi.js"
-import { SmartContainer } from "./smartContainer.js"
 import { state } from "../state.js"
 import * as TWEEN from "@tweenjs/tween.js"
+import { fontStyles } from "../variables.js"
 
-export class Winfeedback extends SmartContainer {
+export class Winfeedback extends Container {
   constructor() {
     super()
     this.name = "win feedback"
@@ -11,24 +11,19 @@ export class Winfeedback extends SmartContainer {
   }
 
   init() {
+    this.container = new Container()
+    this.addChild(this.container)
+
     //background
     this.backgroundSprite = new Sprite(utils.TextureCache["woodboard_lnd"])
     this.backgroundSprite.anchor.set(0.5)
-    this.addChild(this.backgroundSprite)
-
-    //wintext
-    let styleCreditText = new TextStyle({
-      fontFamily:
-        "Segoe UI,Frutiger,Frutiger Linotype,Dejavu Sans,Helvetica Neue,Arial,sans-serif; ",
-      fontSize: "64px",
-      fill: "white",
-    })
+    this.container.addChild(this.backgroundSprite)
 
     //credit
-    this.winText = new Text(`You won 0$`, styleCreditText)
+    this.winText = new Text(`You won 0$`, fontStyles.winFeedbackText)
     this.winText.anchor.set(0.5)
 
-    this.addChild(this.winText)
+    this.container.addChild(this.winText)
 
     this.eventMode = "static"
     this.on("pointerdown", () => {
@@ -36,7 +31,7 @@ export class Winfeedback extends SmartContainer {
     })
 
     //hide container
-    this.scale.set(0)
+    this.container.scale.set(0)
 
   }
 
@@ -44,12 +39,12 @@ export class Winfeedback extends SmartContainer {
     const self = this
 
     new TWEEN.Tween({ width: this.grid.width * 0.5 })
-      .to({ width: [this.grid.width, 0] }, 350)
+      .to({ width: [self.grid.width, 0] }, 350)
       .easing(TWEEN.Easing.Exponential.InOut)
       .interpolation(TWEEN.Interpolation.CatmullRom)
       .onUpdate(function (value) {
-        self.width = value.width
-        self.scale.y = self.scale.x
+        self.container.width = value.width
+        self.container.scale.y = self.container.scale.x
       })
       .onComplete(() => {
         self.observerSubject.notify("closed")
@@ -67,18 +62,18 @@ export class Winfeedback extends SmartContainer {
     .easing(TWEEN.Easing.Exponential.In)
     .interpolation(TWEEN.Interpolation.CatmullRom)
     .onUpdate(function (value) {
-      self.width = value.width
-      self.scale.y = self.scale.x
+      self.container.width = value.width
+      self.container.scale.y = self.container.scale.x
     }).start()
   }
 
   updateLayout(width, height) {
-    if(this.scale.x > 0){
-      this.width = this.grid.width * 0.5
-      this.scale.y = this.scale.x
+    if(this.container.scale.x > 0){
+      this.container.width = this.grid.width * 0.5
+      this.container.scale.y = this.container.scale.x
     }
 
-    this.x = this.grid.x + this.grid.width / 2
-    this.y = this.grid.y + this.grid.height / 4
+    this.container.x = this.grid.x + this.grid.width / 2
+    this.container.y = this.grid.y + this.grid.height / 4
   }
 }

@@ -1,4 +1,16 @@
-import {TEXT_GRADIENT, TextStyle} from 'pixi.js'
+import {TextStyle} from 'pixi.js'
+
+
+export const reelIds = [0, 1, 2, 3, 4]
+
+export const stripeLength = 21
+
+export const reelHeight = 5
+
+
+
+
+//font styles
 export const fontStyles = {
 
     effectsFlyingMulti:  new TextStyle({
@@ -18,7 +30,7 @@ export const fontStyles = {
         fontFamily:
           "Troika ",
           fontSize:'64px',
-          fill:'white',
+          fill:'yellow',
       }),
       gamePanelWin:  new TextStyle({
         fontFamily:
@@ -33,4 +45,25 @@ export const fontStyles = {
           fill:'white',
       }),
 
+      winFeedbackText:  new TextStyle({
+        fontFamily:
+          "Troika ",
+          fontSize:'64px',
+          fill:'red',
+      }),
+
+      winBoardLabel:  new TextStyle({
+        fontFamily:
+          "Troika ",
+          fontSize:'64px',
+          fill:'orange',
+      }),
+      winBoardMulti:  new TextStyle({
+        fontFamily:
+          "Troika ",
+          fontSize:'96px',
+          fill:'orange',
+      }),
+
 }
+

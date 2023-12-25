@@ -1,6 +1,6 @@
 import { symbolList, symbolWeightMap } from "./initAssets.js"
 
-import { reelIds, reelHeight } from "./initGame.js"
+import { reelIds, reelHeight } from "./variables.js"
 
 import { state } from "./state.js"
 

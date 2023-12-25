@@ -7,7 +7,7 @@ import { getResponse, getSymbolStripe, updateCreditAmount } from "./server.js"
 import { Background } from "./components/background.js"
 import { GamePanel } from "./components/gamePanel.js"
 
-import { reelHeight, reelIds } from "./initGame.js"
+import { reelIds,reelHeight } from "./variables.js"
 import { Winfeedback } from "./components/winFeedback.js"
 import { WinBoard } from "./components/winBoard.js"
 import { Effects } from "./components/effects.js"

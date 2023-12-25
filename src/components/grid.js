@@ -1,4 +1,4 @@
-import { Sprite, Container, Texture } from "pixi.js"
+import { Container } from "pixi.js"
 
 import { Reel } from "./reel.js"
 
@@ -6,9 +6,7 @@ import { state } from "../state.js"
 
 import { getSymbolStripe } from "../server.js"
 
-const reelIds = [0, 1, 2, 3, 4]
-
-const stripeLength = 21
+import { reelIds,stripeLength } from "../variables.js"
 
 export class Grid extends Container {
   constructor() {

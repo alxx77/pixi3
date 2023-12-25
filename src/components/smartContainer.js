@@ -22,22 +22,18 @@ export class SmartContainer extends PIXI.Container {
     this.targetPos = { x: xPos, y: yPos }
 
     return new Promise((resolve) => {
-      this.tween = this.getTween(totalTime)
-
-      this.tween.onComplete(() => {
-        resolve()
-      })
-      this.tween.start()
-    })
-  }
-
-  getTween = (totalTime) => {
-    return new TWEEN.Tween(this)
+      new TWEEN.Tween(this)
       .to(this.targetPos, totalTime)
       .easing(TWEEN.Easing.Quadratic.InOut)
       .dynamic(true)
+      .onComplete(() => {
+        resolve()
+      })
+      .start()
+    })
   }
 
+  //update move dinamically
   updateMove(point) {
     this.targetPos.x = point.x
     this.targetPos.y = point.y

@@ -10,12 +10,6 @@ export class GamePanel extends Container {
   }
 
   init() {
-    // const background = new Sprite(Texture.EMPTY)
-    // background.name = "panel_backg"
-    // background.width = this.grid.width+10
-    // background.height = background.width * 0.2
-    // this.addChild(background)
-
     this.container = new Container()
     this.addChild(this.container)
 

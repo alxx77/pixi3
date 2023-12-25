@@ -1,4 +1,4 @@
-import { Ticker, Renderer, Container } from "pixi.js"
+import { Ticker, Renderer } from "pixi.js"
 
 import * as TWEEN from "@tweenjs/tween.js"
 
@@ -7,8 +7,6 @@ import { initAssets } from "./initAssets.js"
 import { state } from "./state.js"
 import { Layout } from "./components/layout.js"
 
-export const reelIds = [0, 1, 2, 3, 4]
-export const reelHeight = 5
 
 export async function InitGame() {
   //canvas

@@ -1,5 +1,6 @@
-import { Sprite, utils, Container, TextStyle, Text, Point } from "pixi.js"
+import { Sprite, utils, Container, Text, } from "pixi.js"
 import { state } from "../state.js"
+import { fontStyles } from "../variables.js"
 
 export class WinBoard extends Container {
   constructor() {
@@ -17,27 +18,12 @@ export class WinBoard extends Container {
     this.winBoardSprite.anchor.set(0.5)
     this.container.addChild(this.winBoardSprite)
 
-    //styles
-    let styleMultiLabel = new TextStyle({
-      fontFamily:
-        "Troika ",
-      fontSize: "64px",
-      fill: "white",
-    })
-
-    let styleMulti = new TextStyle({
-      fontFamily:
-        "Troika ",
-      fontSize: "96px",
-      fill: "white",
-    })
-
     //multiplier
-    this.multiLabelText = new Text(`Multiplier`, styleMultiLabel)
+    this.multiLabelText = new Text(`Multiplier`, fontStyles.winBoardLabel)
     this.multiLabelText.anchor.set(0.5)
     this.multiLabelText.y = -80
 
-    this.multiText = new Text(`0x`, styleMulti)
+    this.multiText = new Text(`0x`, fontStyles.winBoardMulti)
     this.multiText.anchor.set(0.5)
     this.multiText.y = 27
 
