@@ -5,7 +5,8 @@ const CopyWebpackPlugin = require("copy-webpack-plugin")
 module.exports = {
   mode: "development",
   entry: {
-    bundle: path.resolve(__dirname, "src/index.js"),
+    bundle: path.resolve(__dirname, "src/index.ts"), // Update the entry file to TypeScript
+    //bundle: path.resolve(__dirname, "src/index.js"),
   },
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -27,6 +28,9 @@ module.exports = {
     compress: true,
     historyApiFallback: true,
   },
+  resolve: {
+    extensions: [".tsx", ".ts", ".js"], // Add TypeScript file extensions
+  },
   module: {
     rules: [
       {
@@ -34,15 +38,20 @@ module.exports = {
         use: ["style-loader", "css-loader", "sass-loader"],
       },
       {
-        test: /\.js$/,
+        test: /\.tsx?$/, // Add TypeScript file extension
+        use: "ts-loader",
         exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-          options: {
-            presets: ["@babel/preset-env"],
-          },
-        },
       },
+      // {
+      //   test: /\.js$/,
+      //   exclude: /node_modules/,
+      //   use: {
+      //     loader: "babel-loader",
+      //     options: {
+      //       presets: ["@babel/preset-env"],
+      //     },
+      //   },
+      // },
       {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: "asset/resource",

@@ -1,16 +1,23 @@
 import { Sprite, utils, TextStyle, Text, Container } from "pixi.js"
-import { state } from "../state.js"
+import { state, Subject } from "../state"
 import * as TWEEN from "@tweenjs/tween.js"
-import { fontStyles } from "../variables.js"
+import { fontStyles } from "../variables"
+import { Grid } from "./grid"
 
 export class Winfeedback extends Container {
+  name : string
+  grid : Grid
+  container : Container
+  observerSubject: Subject
+  backgroundSprite: Sprite
+  winText: Text
   constructor() {
     super()
+
     this.name = "win feedback"
     this.grid = state.slotMachine.grid
-  }
+    this.observerSubject = new Subject()
 
-  init() {
     this.container = new Container()
     this.addChild(this.container)
 
@@ -22,9 +29,7 @@ export class Winfeedback extends Container {
     //credit
     this.winText = new Text(`You won 0$`, fontStyles.winFeedbackText)
     this.winText.anchor.set(0.5)
-
     this.container.addChild(this.winText)
-
     this.eventMode = "static"
     this.on("pointerdown", () => {
       this.hide()
@@ -32,7 +37,6 @@ export class Winfeedback extends Container {
 
     //hide container
     this.container.scale.set(0)
-
   }
 
   hide() {
@@ -42,7 +46,7 @@ export class Winfeedback extends Container {
       .to({ width: [self.grid.width, 0] }, 350)
       .easing(TWEEN.Easing.Exponential.InOut)
       .interpolation(TWEEN.Interpolation.CatmullRom)
-      .onUpdate(function (value) {
+      .onUpdate(function (value:any) {
         self.container.width = value.width
         self.container.scale.y = self.container.scale.x
       })
@@ -51,7 +55,7 @@ export class Winfeedback extends Container {
       }).start()
   }
 
-  showWin(win_amount) {
+  showWin(win_amount:number) {
 
     const self = this
 
@@ -61,13 +65,13 @@ export class Winfeedback extends Container {
     .to({ width: [this.grid.width, this.grid.width * 0.5] }, 350)
     .easing(TWEEN.Easing.Exponential.In)
     .interpolation(TWEEN.Interpolation.CatmullRom)
-    .onUpdate(function (value) {
+    .onUpdate(function (value:any) {
       self.container.width = value.width
       self.container.scale.y = self.container.scale.x
     }).start()
   }
 
-  updateLayout(width, height) {
+  updateLayout(width:number, height:number) {
     if(this.container.scale.x > 0){
       this.container.width = this.grid.width * 0.5
       this.container.scale.y = this.container.scale.x

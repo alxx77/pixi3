@@ -1,15 +1,20 @@
 import { Sprite, utils, Container, Text, } from "pixi.js"
-import { state } from "../state.js"
-import { fontStyles } from "../variables.js"
+import { state } from "../state"
+import { fontStyles } from "../variables"
+import { Grid } from "./grid"
 
 export class WinBoard extends Container {
+  name:string
+  grid: Grid
+  container: Container
+  winBoardSprite: Sprite
+  multiLabelText: Text
+  multiText: Text
+
   constructor() {
     super()
     this.name = "Winboard"
     this.grid = state.slotMachine.grid
-  }
-
-  init() {
     this.container = new Container()
     this.addChild(this.container)
 
@@ -31,7 +36,7 @@ export class WinBoard extends Container {
     this.container.addChild(this.multiText)
   }
 
-  updateText(amount){
+  updateText(amount:number){
     this.multiText.text = `${amount}x`
   }
 
@@ -39,7 +44,7 @@ export class WinBoard extends Container {
     this.updateText(0)
   }
 
-  updateLayout(width, height) {
+  updateLayout(width:number, height:number) {
     //this.container.scale.set(0.5)
     if (width / height >= 1) {
       this.winBoardSprite.texture = utils.TextureCache["woodboard_prt"]

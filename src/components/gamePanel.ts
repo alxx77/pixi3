@@ -1,21 +1,27 @@
-import { Container, utils, Sprite, Texture, Text, TextStyle } from "pixi.js"
-import { state } from "../state.js"
-import { updateBetAmount } from "../server.js"
-import { fontStyles } from "../variables.js"
+import { Container, utils, Sprite, Text } from "pixi.js"
+import { state } from "../state"
+import { updateUserBetAmount } from "../server"
+import { fontStyles } from "../variables"
+import { Grid } from "./grid"
 
+//game panel
 export class GamePanel extends Container {
+  container: Container
+  grid: Grid
+  playButtonSprite: Sprite
+  betUpButton: Sprite
+  betDownButton: Sprite
+  creditText: Text
+  betAmountText: Text
+  winAmountText: Text
   constructor() {
     super()
     this.grid = state.slotMachine.grid
-  }
-
-  init() {
     this.container = new Container()
     this.addChild(this.container)
 
     //spin button
     this.playButtonSprite = new Sprite(utils.TextureCache["spin_button"])
-    this.playButtonSprite.name = "play"
     this.playButtonSprite.eventMode = "static"
     this.playButtonSprite.on("pointerdown", () => {
       state.slotMachine.play()
@@ -26,10 +32,9 @@ export class GamePanel extends Container {
 
     //increase bet
     this.betUpButton = new Sprite(utils.TextureCache["plus_button"])
-    this.betUpButton.name = "bet up"
     this.betUpButton.eventMode = "static"
     this.betUpButton.on("pointerdown", () => {
-      updateBetAmount(state.user.bet_amt + 1)
+      updateUserBetAmount(state.user.bet_amt + 1)
       this.updateBetText(state.user.bet_amt)
     })
     this.betUpButton.scale.set(0.25)
@@ -38,14 +43,13 @@ export class GamePanel extends Container {
 
     //decrease bet
     this.betDownButton = new Sprite(utils.TextureCache["minus_button"])
-    this.betDownButton.name = "bet down"
     this.betDownButton.scale.set(0.25)
     this.betDownButton.x = 1085
     this.betDownButton.y = 146
     this.betDownButton.eventMode = "static"
     this.betDownButton.on("pointerdown", () => {
       if (state.user.bet_amt > 1) {
-        updateBetAmount(state.user.bet_amt - 1)
+        updateUserBetAmount(state.user.bet_amt - 1)
         this.updateBetText(state.user.bet_amt)
       }
     })
@@ -66,7 +70,6 @@ export class GamePanel extends Container {
     this.winAmountText.y = 70
 
     //add to container
-
     let conts = [
       this.playButtonSprite,
       this.betUpButton,
@@ -81,21 +84,21 @@ export class GamePanel extends Container {
   }
 
   //ispis kredita
-  updateCreditText(amount) {
+  updateCreditText(amount: number) {
     this.creditText.text = `Credit: ${amount} $`
   }
 
   //ispis iznosa trenutne opklade
-  updateBetText(amount) {
+  updateBetText(amount: number) {
     this.betAmountText.text = `Bet: ${amount} $`
   }
 
   //ispis iznosa trenutne opklade
-  updateWinAmountText(amount) {
+  updateWinAmountText(amount: number) {
     this.winAmountText.text = `Win: ${amount} $`
   }
 
-  updateLayout(width, height) {
+  updateLayout(width: number, height: number) {
     this.container.width = this.grid.width
     this.container.scale.y = this.container.scale.x
 

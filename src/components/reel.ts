@@ -1,12 +1,24 @@
 import { BlurFilter, Container, Ticker, Sprite, Texture } from "pixi.js"
-import { Symbol } from "./symbol.js"
-import { REEL_X_OFFSET, SYMBOL_HEIGHT, SYMBOL_WIDTH } from "../initAssets.js"
+import { Symbol } from "./symbol"
+import { REEL_X_OFFSET, SYMBOL_HEIGHT, SYMBOL_WIDTH } from "../initAssets"
+import { Grid } from "./grid"
 
 //linear interpolation
-const lerp = (x, y, a) => x * (1 - a) + y * a
+const lerp = (x: number, y: number, a: number) => x * (1 - a) + y * a
 
+//single change of position
+type DeltaPosition = { dx: number; dy: number }
+
+//reel class
 export class Reel extends Container {
-  constructor(grid, reelId) {
+  private grid: Grid
+  public name: string
+  public symbols: Symbol[]
+  public reelId: number
+  private xOffset: number
+  private reelHeight: number
+  private blurFilter: BlurFilter
+  constructor(grid: Grid, reelId: number) {
     super()
     this.grid = grid
     this.name = "reel " + reelId
@@ -15,40 +27,41 @@ export class Reel extends Container {
     this.reelId = reelId
     this.xOffset = reelId * REEL_X_OFFSET
     this.reelHeight = SYMBOL_HEIGHT * 5
+    this.blurFilter = new BlurFilter(2)
 
-    this.blurFilter = new BlurFilter(1)
-
+    //mask
     const mask = new Sprite(Texture.WHITE)
-    mask.name = "Reel mask"
     mask.width = SYMBOL_WIDTH
     mask.height = SYMBOL_HEIGHT * 5
-
     this.addChild(mask)
     this.mask = mask
 
-    this.init()
-  }
-
-  init() {
-    //set x offset
+    //set x pos relative to grid
     this.x = this.xOffset
   }
 
-  //update symbols
-  updateSymbols(symbolStripe) {
+  //update symbols on reel 
+  updateSymbols(symbolStripe: string[]) {
     const baseHeigth = this.symbols.length
+
     //for each symbol name on stripe...
     symbolStripe.forEach((symbolName, idx) => {
+
       //create new symbol
-      const newSymbol = new Symbol(symbolName, this)
+      const newSymbol = new Symbol(symbolName)
+      this.addChild(newSymbol)
+
       //get correct y position
       newSymbol.y = (-baseHeigth - idx + 5) * SYMBOL_HEIGHT
+
       //push into reel symbols
       this.symbols.push(newSymbol)
     })
   }
 
-  async spinReel(speed) {
+  //spin
+  async spinReel(speed: number) {
+
     //total number of symbol shifts
     const shiftCount = this.symbols.length - 7
 
@@ -61,18 +74,24 @@ export class Reel extends Container {
     const ySoftLandingFinalMoveDownTarget = SYMBOL_HEIGHT / 4
 
     //generator return value
-    let step = null
+    let step: IteratorResult<DeltaPosition, void>
     let ticker = new Ticker()
 
-    let g = new this.performMove(0, 0, 0, ySoftMoveUpTarget, speed / 2)
+    //get generator for 1st part of a move
+    let g = this.performMove(0, 0, 0, ySoftMoveUpTarget, speed / 2)
 
-    await new Promise((resolve) => {
+    //add new cb to a ticker
+    //and loop until generator is done
+    //when gen. is done, destroy cb
+    await new Promise<void>((resolve) => {
       ticker.add((delta) => {
         step = g.next(delta)
         if (step.done === false) {
           this.symbols.forEach((symbol) => {
             //move each symbol
-            symbol.y = symbol.y + step.value.dy * -1
+            if (step.value) {
+              symbol.y = symbol.y + step.value.dy * -1
+            }
           })
         } else {
           ticker.destroy()
@@ -82,8 +101,8 @@ export class Reel extends Container {
       ticker.start()
     })
 
-    //new gen & ticker
-    g = new this.performMove(
+    //new gen & ticker for 2nd part of move
+    g = this.performMove(
       0,
       0,
       0,
@@ -91,15 +110,20 @@ export class Reel extends Container {
       speed / (0.5 + Math.random() * 0.5)
     )
     ticker = new Ticker()
+    
+    //start blur
+    this.onMainMoveStart()
 
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       const t = ticker.add((delta) => {
         step = g.next(delta)
 
         if (step.done === false) {
           this.symbols.forEach((symbol) => {
             //move each symbol
-            symbol.y = symbol.y + step.value.dy
+            if (step.value) {
+              symbol.y = symbol.y + step.value.dy
+            }
           })
         } else {
           ticker.destroy()
@@ -109,8 +133,11 @@ export class Reel extends Container {
       ticker.start()
     })
 
-    //new gen & ticker
-    g = new this.performMove(
+    //stop blur
+    this.onMainMoveEnd()
+
+    //new gen & ticker for 3rd part of move
+    g = this.performMove(
       0,
       0,
       0,
@@ -119,14 +146,16 @@ export class Reel extends Container {
     )
     ticker = new Ticker()
 
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       const t = ticker.add((delta) => {
         step = g.next(delta)
 
         if (step.done === false) {
           this.symbols.forEach((symbol) => {
             //move each symbol
-            symbol.y = symbol.y + step.value.dy * -1
+            if (step.value) {
+              symbol.y = symbol.y + step.value.dy * -1
+            }
           })
         } else {
           ticker.destroy()
@@ -136,8 +165,8 @@ export class Reel extends Container {
       ticker.start()
     })
 
-    //new gen & ticker
-    g = new this.performMove(
+    //new gen & ticker for 4th part of move
+    g = this.performMove(
       0,
       0,
       0,
@@ -146,14 +175,16 @@ export class Reel extends Container {
     )
     ticker = new Ticker()
 
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       const t = ticker.add((delta) => {
         step = g.next(delta)
 
         if (step.done === false) {
           this.symbols.forEach((symbol) => {
             //move each symbol
-            symbol.y = symbol.y + step.value.dy
+            if (step.value) {
+              symbol.y = symbol.y + step.value.dy
+            }
           })
         } else {
           ticker.destroy()
@@ -163,17 +194,21 @@ export class Reel extends Container {
       ticker.start()
     })
 
-    //after finish cut off everthing below bottom edge+1 in the grid
-    let a = this.symbols.splice(0, this.symbols.length - 7)
-
-    //cleanup unnecessery symbols
+    //after finish destroy all symbols on reel below bottom edge+1 in the grid
+    const a = this.symbols.splice(0, this.symbols.length - 7)
     a.forEach((el) => {
       el.destroy()
     })
-    a = null
   }
 
-  performMove = function* (xCurrent, yCurrent, xTarget, yTarget, speed) {
+  //generator that calculates move
+  performMove = function* (
+    xCurrent: number,
+    yCurrent: number,
+    xTarget: number,
+    yTarget: number,
+    speed: number
+  ): Generator<DeltaPosition, void, number> {
     let delta = 1
 
     //linear interpolation
@@ -204,7 +239,8 @@ export class Reel extends Container {
     //remainig distance in abs amount
     let pathYPerformed = 0
 
-    //half speed
+    //speed correction
+    //allows diffeent speed of reel in different stages of a move
     let speedCorrection = 1
 
     //loop until target is reached
@@ -271,7 +307,7 @@ export class Reel extends Container {
       delta = yield { dx: actualDX, dy: actualDY }
     }
   }
-
+  
   onMainMoveStart = () => {
     this.symbols.forEach((s) => (s.filters = [this.blurFilter]))
   }

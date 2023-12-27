@@ -1,11 +1,11 @@
-import { symbolList, symbolWeightMap } from "./initAssets.js"
+import { symbolList, symbolWeightMap } from "./initAssets"
 
-import { reelIds, reelHeight } from "./variables.js"
+import { reelIds, reelHeight } from "./variables"
 
-import { state } from "./state.js"
+import { state } from "./state"
 
 //get random symbols stripe
-export function getSymbolStripe(stripeLength) {
+export function getRandomSymbolStripe(stripeLength: number) {
   const arr = []
   for (let index = 0; index < stripeLength; index++) {
     const symbolName = symbolList[Math.floor(getRandomFloat() * 12)]
@@ -28,12 +28,44 @@ function getRandomFloat() {
   return randomFloat
 }
 
+export type User = {
+  bet_amt: number
+  credit_amt: number
+}
+
+type PaylinesPerSymbolEntry = {
+  line: number[]
+  win: number
+}
+
+type PaylinesPerSymbol = {
+  winSymbol: string
+  data: PaylinesPerSymbolEntry[]
+}
+
+export type Response = {
+  playerStartBalance: number
+  betAmount: number
+  playerEndBalance: number
+  rounds: Round[]
+  totalWin: number
+}
+
+export type Round = {
+  spin: number
+  reels: string[][]
+  payouts: PaylinesPerSymbol[]
+  winPerRound: number
+}
+
+export type WinRunningTotal = { value: number }
+
 //test response
-export function getResponse(betAmount) {
-  const response = {}
+export function getResponse(betAmount: number): Response {
+  const response = {} as Response
 
   //response
-  response.playerStartBalance = state.playerBalance - betAmount
+  response.playerStartBalance = state.user.credit_amt
   response.betAmount = betAmount
   response.playerEndBalance = 0
   response.rounds = []
@@ -41,17 +73,17 @@ export function getResponse(betAmount) {
 
   // number of rounds
   for (const round of [1, 2]) {
-    const newRound = {}
+    const newRound = {} as Round
 
     //spin
     newRound.spin = round
     newRound.reels = []
-    newRound.paylines = []
+    newRound.payouts = []
     newRound.winPerRound = 0
 
     //for each reel create round data
     for (const id of reelIds) {
-      const newReel = []
+      const newReel: string[] = []
 
       for (let index = 0; index < reelHeight; index++) {
         //get
@@ -62,7 +94,17 @@ export function getResponse(betAmount) {
       newRound.reels.push(newReel)
     }
 
-    //force 2 win in round 2
+    //force wins
+
+    if (round === 1) {
+      newRound.reels[0][3] = "H1"
+      newRound.reels[0][4] = "H1"
+      newRound.reels[1][4] = "H1"
+      newRound.reels[2][3] = "H1"
+      newRound.reels[2][4] = "H1"
+      newRound.reels[4][4] = "H1"
+    }
+
     if (round === 2) {
       newRound.reels[0][0] = "M1"
       newRound.reels[1][1] = "M1"
@@ -70,13 +112,6 @@ export function getResponse(betAmount) {
       newRound.reels[2][0] = "M1"
       newRound.reels[2][1] = "M1"
       newRound.reels[4][1] = "M1"
-
-      // newRound.reels[0][3] = "H1"
-      // newRound.reels[0][4] = "H1"
-      // newRound.reels[1][4] = "H1"
-      // newRound.reels[2][3] = "H1"
-      // newRound.reels[2][4] = "H1"
-      // newRound.reels[4][4] = "H1"
     }
 
     //check fo wins
@@ -85,7 +120,7 @@ export function getResponse(betAmount) {
     const countMap = newRound.reels.flat(1).reduce((acc, el) => {
       acc[el] = (acc[el] ?? 0) + 1
       return acc
-    }, {})
+    }, {} as Record<string, number>)
 
     let winPerRound = 0
 
@@ -95,18 +130,18 @@ export function getResponse(betAmount) {
       //if there is 6 or more of a kind
       if (occ >= 6) {
         //so each win must be separate object
-        const paylinesPerSymbol = { winSymbol, data: [] }
+        const paylinesPerSymbol = { winSymbol, data: [] } as PaylinesPerSymbol
         //create payline matrix
         //for each reel
         for (const reelId of reelIds) {
-          const newReelPayline = []
+          const newReelPayline: number[] = []
           //get payline for a reel
           let winPerLine = 0
           for (const s of newRound.reels[reelId]) {
             //if there is a match
             //push symbols value or
             if (s === winSymbol) {
-              let weight = symbolWeightMap.get(s)
+              const weight = symbolWeightMap.get(s) ?? 0
               newReelPayline.push(weight)
               winPerLine = winPerLine + weight
               winPerRound = winPerRound + weight
@@ -115,30 +150,36 @@ export function getResponse(betAmount) {
             }
           }
           //add payline
-          paylinesPerSymbol.data.push({ line: newReelPayline, win: winPerLine })
+          paylinesPerSymbol.data.push({
+            line: newReelPayline,
+            win: winPerLine,
+          } as PaylinesPerSymbolEntry)
         }
-        newRound.paylines.push(paylinesPerSymbol)
+        newRound.payouts.push(paylinesPerSymbol)
       }
     }
 
     //add round to list
     response.rounds.push(newRound)
 
+    //update
     newRound.winPerRound = newRound.winPerRound + winPerRound
 
-    response.totalWin = response.totalWin + winPerRound
+    //total win
+    response.totalWin = response.totalWin + (winPerRound *betAmount)
   }
 
-  response.playerEndBalance = response.playerStartBalance + (response.totalWin * betAmount)
-  state.playerBalance = response.playerEndBalance
+  //bet amount is deduced
+  response.playerEndBalance =
+    response.playerStartBalance + response.totalWin - betAmount
 
   return response
 }
 
-export function updateCreditAmount(credit){
+export function updateUserCreditAmount(credit: number) {
   state.user.credit_amt = credit
 }
 
-export function updateBetAmount(bet){
+export function updateUserBetAmount(bet: number) {
   state.user.bet_amt = bet
 }

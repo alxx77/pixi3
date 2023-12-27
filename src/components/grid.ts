@@ -1,26 +1,35 @@
 import { Container } from "pixi.js"
+import { Reel } from "./reel"
+import { state } from "../state"
+import { Round, getRandomSymbolStripe } from "../server"
+import { reelIds, stripeLength } from "../variables"
+import { Symbol } from "./symbol"
 
-import { Reel } from "./reel.js"
+type WinSymbolEntry = {
+  symbol: Symbol
+  win: number
+}
 
-import { state } from "../state.js"
+type WinSymbolList = {
+  data: WinSymbolEntry[]
+}
 
-import { getSymbolStripe } from "../server.js"
-
-import { reelIds,stripeLength } from "../variables.js"
-
+//grid class
 export class Grid extends Container {
+  public reels: Reel[]
   constructor() {
     super()
     this.name = "Grid"
     this.reels = []
-  }
 
-  init() {
-    //init reels
+    //init empty reels
     reelIds.forEach((reelId) => {
       this.reels.push(new Reel(this, reelId))
     })
+  }
 
+  //initialize reels
+  initReelSymbols() {
     //update symbols on reels
     this.reels.forEach((reel) => {
       reel.updateSymbols(state.initialStripes[reel.reelId])
@@ -28,10 +37,12 @@ export class Grid extends Container {
   }
 
   //update all symbols on each reel with symbols from next round
-  updateGridSymbols(round) {
+  updateSymbols(round: Round) {
     //update reel symbols
     this.reels.forEach((reel) => {
-      const stripe = getSymbolStripe(stripeLength)
+      //get new stripe
+      const stripe = getRandomSymbolStripe(stripeLength)
+
       //insert new round data into stripe, leaving 1 random element at the end of stripe
       //because of soft landing effect
       stripe.splice(stripe.length - 1, 0, ...round.reels[reel.reelId])
@@ -39,80 +50,100 @@ export class Grid extends Container {
     })
   }
 
+  //spin
   async spinReels() {
     const promises = []
-    const reels = this.reels
+    //for each reel
     for (const reelId of reelIds) {
       //pause if not 1st reel
       if (reelId > 0) {
-        await new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
           setTimeout(() => {
             resolve()
           }, Math.random() * 125)
         })
       }
 
-      //spin reel
-      promises.push(reels[reelId].spinReel(10))
+      //spin reel and save promise
+      promises.push(this.reels[reelId].spinReel(7))
     }
 
     //wait for all reels to stop
     await Promise.all(promises)
   }
 
-  AnimateWin = async (round) => {
+  AnimateWin = async (round: Round) => {
     //get wining symbols
-    const winList = this.getWinSymbols(round)
+    const payoutsPerRoundList = this.getWinSymbols(round)
 
     //do flickering
-    for (let i = 0; i < winList.length; i++) {
+    for (let i = 0; i < payoutsPerRoundList.length; i++) {
       let promises = []
-      for (const winline of winList[i].data) {
-        promises.push(winline.symbol.flicker(3, 25))
-        await new Promise((resolve) => {
-          setTimeout(() => {
-            resolve()
-          }, 15 + Math.random() * 15)
-        })
-      }
-
-      //pause between multiple wins if not last win
-      if (i < winList.length - 1) {
-        await new Promise((resolve) => {
+      //for each payout
+      for (const winSymbolEntry of payoutsPerRoundList[i].data) {
+        //flicker winning symbols
+        promises.push(winSymbolEntry.symbol.flicker(7, 125))
+        //make a little pause after
+        await new Promise<void>((resolve) => {
           setTimeout(() => {
             resolve()
           }, 75 + Math.random() * 75)
         })
       }
 
+      //pause between multiple wins if not last win
+      if (i < payoutsPerRoundList.length - 1) {
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            resolve()
+          }, 75 + Math.random() * 75)
+        })
+      }
+
+      //wait for flickering to finish
       await Promise.all(promises)
     }
   }
 
   //get winning symbols
-  getWinSymbols(round) {
-    const winList = []
+  getWinSymbols(round: Round) {
+    const resultList = []
     const grid = this
-    for (const winPerSymbol of round.paylines) {
-      const win = { data: [] }
-      winPerSymbol.data.forEach((payline, plIdx) => {
+
+    //loop through payouts
+    for (const payoutPerSymbol of round.payouts) {
+
+      //result for each win ( there can be multiple wins in a round)
+      const win = { data: [] } as WinSymbolList
+
+      //loop through multipliers for each symbol
+      payoutPerSymbol.data.forEach((payline, plIdx) => {
+
+        //if there is a win in a payline
         if (payline.win > 0) {
+
+          //loop through payline
           payline.line.forEach((i, idx) => {
+
+            //if there is a win for a symbol
             if (i > 0) {
+
+              //save win data - symbol and win amount
               win.data.push({
                 symbol: grid.reels[plIdx].symbols[idx + 1],
                 win: i,
-              })
+              } as WinSymbolEntry)
             }
           })
         }
       })
-      winList.push(win)
+      //save
+      resultList.push(win)
     }
-    return winList
+    return resultList
   }
 
-  updateLayout(width, height) {
+  updateLayout(width: number, height: number) {
     // desired w/h ratio of grid
     let gridRatio = 1
 
