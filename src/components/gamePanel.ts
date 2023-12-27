@@ -1,8 +1,9 @@
 import { Container, utils, Sprite, Text } from "pixi.js"
 import { state } from "../state"
 import { updateUserBetAmount } from "../server"
-import { fontStyles } from "../variables"
+import { fontStyles, soundSource } from "../variables"
 import { Grid } from "./grid"
+import { Howl, Howler } from "howler"
 
 //game panel
 export class GamePanel extends Container {
@@ -14,6 +15,7 @@ export class GamePanel extends Container {
   creditText: Text
   betAmountText: Text
   winAmountText: Text
+  clickButtonSound: Howl
   constructor() {
     super()
     this.grid = state.slotMachine.grid
@@ -24,6 +26,7 @@ export class GamePanel extends Container {
     this.playButtonSprite = new Sprite(utils.TextureCache["spin_button"])
     this.playButtonSprite.eventMode = "static"
     this.playButtonSprite.on("pointerdown", () => {
+      this.clickButtonSound.play()
       state.slotMachine.play()
     })
     this.playButtonSprite.scale.set(0.6)
@@ -34,6 +37,7 @@ export class GamePanel extends Container {
     this.betUpButton = new Sprite(utils.TextureCache["plus_button"])
     this.betUpButton.eventMode = "static"
     this.betUpButton.on("pointerdown", () => {
+      this.clickButtonSound.play()
       updateUserBetAmount(state.user.bet_amt + 1)
       this.updateBetText(state.user.bet_amt)
     })
@@ -49,6 +53,7 @@ export class GamePanel extends Container {
     this.betDownButton.eventMode = "static"
     this.betDownButton.on("pointerdown", () => {
       if (state.user.bet_amt > 1) {
+        this.clickButtonSound.play()
         updateUserBetAmount(state.user.bet_amt - 1)
         this.updateBetText(state.user.bet_amt)
       }
@@ -81,6 +86,13 @@ export class GamePanel extends Container {
     ]
 
     this.container.addChild(...conts)
+
+    //sound
+    this.clickButtonSound = new Howl({
+      src: [soundSource.clickButton],
+      volume: 0.5,
+      loop: false,
+    })
   }
 
   //ispis kredita

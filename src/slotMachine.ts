@@ -12,11 +12,12 @@ import {
 
 import { Background } from "./components/background"
 import { GamePanel } from "./components/gamePanel"
-import { reelIds, reelHeight } from "./variables"
+import { reelIds, reelHeight, soundSource } from "./variables"
 import { Winfeedback } from "./components/winFeedback"
 import { WinBoard } from "./components/winBoard"
 import { Effects } from "./components/effects"
 import { Renderer } from "pixi.js"
+import { Howl, Howler } from "howler"
 
 //main high game logic class
 export class SlotMachine {
@@ -29,6 +30,8 @@ export class SlotMachine {
   public winBoard: WinBoard
   public effects: Effects
   private renderer: Renderer
+  private midWinSound: Howl
+  private ambienceSound: Howl
 
   constructor(layout: Layout, renderer: Renderer) {
     this.layout = layout
@@ -88,6 +91,24 @@ export class SlotMachine {
     this.grid.initReelSymbols()
 
     this.updateView()
+
+    this.midWinSound = new Howl({
+      src: [soundSource.midWin],
+      volume: 0.1,
+      loop: false,
+      sprite : {
+        'sound1':[0,4984]
+      }
+    })
+
+    this.ambienceSound = new Howl({
+      src: [soundSource.ambience],
+      volume: 0.3,
+      loop: true,
+    })
+
+    this.ambienceSound.play()
+
   }
 
   //generate and set initial symbol stripes
@@ -176,6 +197,11 @@ export class SlotMachine {
 
     //play win if any
     if (round.winPerRound > 0) {
+
+      //play sound
+      this.midWinSound.volume(0.1)
+      this.midWinSound.play('sound1')
+
       //flicker symbols
       const p1 = this.grid.AnimateWin(round)
 
@@ -184,6 +210,8 @@ export class SlotMachine {
 
       //wait until finished
       await Promise.all([p1, p2])
+
+      this.midWinSound.fade(0.1,0, 1000)
     }
   }
 

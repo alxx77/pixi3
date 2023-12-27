@@ -2,6 +2,8 @@ import { BlurFilter, Container, Ticker, Sprite, Texture } from "pixi.js"
 import { Symbol } from "./symbol"
 import { REEL_X_OFFSET, SYMBOL_HEIGHT, SYMBOL_WIDTH } from "../initAssets"
 import { Grid } from "./grid"
+import { Howl, Howler } from "howler"
+import { soundSource } from "../variables"
 
 //linear interpolation
 const lerp = (x: number, y: number, a: number) => x * (1 - a) + y * a
@@ -18,6 +20,7 @@ export class Reel extends Container {
   private xOffset: number
   private reelHeight: number
   private blurFilter: BlurFilter
+  clickReelSound: Howl
   constructor(grid: Grid, reelId: number) {
     super()
     this.grid = grid
@@ -38,15 +41,21 @@ export class Reel extends Container {
 
     //set x pos relative to grid
     this.x = this.xOffset
+
+    //sound
+    this.clickReelSound = new Howl({
+      src: [soundSource.clickReel],
+      volume: 0.2,
+      loop: false,
+    })
   }
 
-  //update symbols on reel 
+  //update symbols on reel
   updateSymbols(symbolStripe: string[]) {
     const baseHeigth = this.symbols.length
 
     //for each symbol name on stripe...
     symbolStripe.forEach((symbolName, idx) => {
-
       //create new symbol
       const newSymbol = new Symbol(symbolName)
       this.addChild(newSymbol)
@@ -61,7 +70,6 @@ export class Reel extends Container {
 
   //spin
   async spinReel(speed: number) {
-
     //total number of symbol shifts
     const shiftCount = this.symbols.length - 7
 
@@ -110,9 +118,13 @@ export class Reel extends Container {
       speed / (0.5 + Math.random() * 0.5)
     )
     ticker = new Ticker()
-    
+
     //start blur
     this.onMainMoveStart()
+
+    //sound counter
+    let yShift = 0
+    
 
     await new Promise<void>((resolve) => {
       const t = ticker.add((delta) => {
@@ -123,6 +135,16 @@ export class Reel extends Container {
             //move each symbol
             if (step.value) {
               symbol.y = symbol.y + step.value.dy
+
+              //check if there was entire symbol shift
+              //if yes, play click sound
+              if(this.reelId===4 && yShift>SYMBOL_HEIGHT*25){
+                this.clickReelSound.play()
+                yShift = 0
+              } else {
+                //if no, just increment shift counter
+                yShift+=step.value.dy
+              }
             }
           })
         } else {
@@ -187,6 +209,7 @@ export class Reel extends Container {
             }
           })
         } else {
+          this.clickReelSound.play()
           ticker.destroy()
           resolve()
         }
@@ -307,7 +330,7 @@ export class Reel extends Container {
       delta = yield { dx: actualDX, dy: actualDY }
     }
   }
-  
+
   onMainMoveStart = () => {
     this.symbols.forEach((s) => (s.filters = [this.blurFilter]))
   }

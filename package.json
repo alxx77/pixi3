@@ -1,13 +1,14 @@
 {
   "dependencies": {
     "@tweenjs/tween.js": "^21.0.0",
+    "@types/howler": "^2.2.11",
+    "howler": "^2.2.4",
     "pixi-spine": "^4.0.4",
     "pixi.js": "^7.3.2"
   },
   "name": "pixi3",
   "version": "1.0.0",
   "main": "game.js",
-
   "scripts": {
     "build": "webpack",
     "dev": "webpack serve"
