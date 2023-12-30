@@ -1,5 +1,5 @@
 import { Container } from "pixi.js"
-import { state } from "../state"
+import { components} from "../state"
 
 //root container
 export class Layout extends Container {
@@ -14,12 +14,12 @@ export class Layout extends Container {
 
   updateLayout(width: number, height: number) {
     //first align the grid, then everything else
-      state.slotMachine.grid.updateLayout(width, height)
-      state.slotMachine.background.updateLayout(width, height)
-      state.slotMachine.gamePanel.updateLayout(width, height)
-      state.slotMachine.winFeedback.updateLayout(width, height)
-      state.slotMachine.winBoard.updateLayout(width, height)
-      state.slotMachine.effects.updateLayout(width, height)
+      components.grid.updateLayout(width, height)
+      components.background.updateLayout(width, height)
+      components.gamePanel.updateLayout(width, height)
+      components.winFeedback.updateLayout(width, height)
+      components.winBoard.updateLayout(width, height)
+      components.effects.updateLayout(width, height)
 
   }
 }

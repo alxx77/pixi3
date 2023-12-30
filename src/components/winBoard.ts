@@ -1,11 +1,11 @@
-import { Sprite, utils, Container, Text, } from "pixi.js"
-import { state } from "../state"
+import { Sprite, utils, Container, Text } from "pixi.js"
+import { components, state } from "../state"
 import { fontStyles } from "../variables"
 import { Grid } from "./grid"
+import { reaction } from "mobx"
 
 export class WinBoard extends Container {
-  name:string
-  grid: Grid
+  name: string
   container: Container
   winBoardSprite: Sprite
   multiLabelText: Text
@@ -14,7 +14,6 @@ export class WinBoard extends Container {
   constructor() {
     super()
     this.name = "Winboard"
-    this.grid = state.slotMachine.grid
     this.container = new Container()
     this.addChild(this.container)
 
@@ -34,35 +33,34 @@ export class WinBoard extends Container {
 
     this.container.addChild(this.multiLabelText)
     this.container.addChild(this.multiText)
+
+    reaction(
+      () => state.winRunningTotal,
+      (newWRT) => {
+        this.multiText.text = `${newWRT}x`
+      }
+    )
   }
 
-  updateText(amount:number){
-    this.multiText.text = `${amount}x`
-  }
-
-  resetBoard(){
-    this.updateText(0)
-  }
-
-  updateLayout(width:number, height:number) {
+  updateLayout(width: number, height: number) {
     //this.container.scale.set(0.5)
     if (width / height >= 1) {
       this.winBoardSprite.texture = utils.TextureCache["woodboard_prt"]
       //landscape
-      this.container.width = this.grid.width / 4
+      this.container.width = components.grid.width / 4
       this.container.scale.y = this.container.scale.x
 
-      this.container.x = this.grid.x - this.container.width / 2 - 10
-      this.container.y = this.grid.y + this.container.height / 2
+      this.container.x = components.grid.x - this.container.width / 2 - 10
+      this.container.y = components.grid.y + this.container.height / 2
     } else {
       //portrait
       this.winBoardSprite.texture = utils.TextureCache["woodboard_lnd"]
 
-      this.container.width = this.grid.width / 2
+      this.container.width = components.grid.width / 2
       this.container.scale.y = this.container.scale.x
 
-      this.container.x = this.grid.x + this.grid.width / 2
-      this.container.y = this.grid.y - this.container.height / 2 - 5
+      this.container.x = components.grid.x + components.grid.width / 2
+      this.container.y = components.grid.y - this.container.height / 2 - 5
     }
   }
 }

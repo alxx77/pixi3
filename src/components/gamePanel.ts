@@ -1,15 +1,14 @@
 import { Container, utils, Sprite, Text } from "pixi.js"
-import { state } from "../state"
+import { components, state } from "../state"
 import { updateUserBetAmount } from "../server"
 import { fontStyles, soundSource } from "../variables"
-import { Grid } from "./grid"
-import { Howl, Howler } from "howler"
+import { Howl } from "howler"
+import { reaction } from "mobx"
 
 //game panel
 export class GamePanel extends Container {
   container: Container
-  grid: Grid
-  playButtonSprite: Sprite
+  playButton: Sprite
   betUpButton: Sprite
   betDownButton: Sprite
   creditText: Text
@@ -18,20 +17,19 @@ export class GamePanel extends Container {
   clickButtonSound: Howl
   constructor() {
     super()
-    this.grid = state.slotMachine.grid
     this.container = new Container()
     this.addChild(this.container)
 
     //spin button
-    this.playButtonSprite = new Sprite(utils.TextureCache["spin_button"])
-    this.playButtonSprite.eventMode = "static"
-    this.playButtonSprite.on("pointerdown", () => {
+    this.playButton = new Sprite(utils.TextureCache["spin_button"])
+    this.playButton.eventMode = "static"
+    this.playButton.on("pointerdown", () => {
       this.clickButtonSound.play()
-      state.slotMachine.play()
+      components.slotMachine.play()
     })
-    this.playButtonSprite.scale.set(0.6)
-    this.playButtonSprite.x = 432
-    this.playButtonSprite.y = 60
+    this.playButton.scale.set(0.6)
+    this.playButton.x = 432
+    this.playButton.y = 60
 
     //increase bet
     this.betUpButton = new Sprite(utils.TextureCache["plus_button"])
@@ -39,7 +37,6 @@ export class GamePanel extends Container {
     this.betUpButton.on("pointerdown", () => {
       this.clickButtonSound.play()
       updateUserBetAmount(state.user.bet_amt + 1)
-      this.updateBetText(state.user.bet_amt)
     })
     this.betUpButton.scale.set(0.25)
     this.betUpButton.x = 915
@@ -55,7 +52,6 @@ export class GamePanel extends Container {
       if (state.user.bet_amt > 1) {
         this.clickButtonSound.play()
         updateUserBetAmount(state.user.bet_amt - 1)
-        this.updateBetText(state.user.bet_amt)
       }
     })
 
@@ -76,7 +72,7 @@ export class GamePanel extends Container {
 
     //add to container
     let conts = [
-      this.playButtonSprite,
+      this.playButton,
       this.betUpButton,
       this.betDownButton,
       this.betAmountText,
@@ -93,28 +89,49 @@ export class GamePanel extends Container {
       volume: 0.5,
       loop: false,
     })
-  }
 
-  //ispis kredita
-  updateCreditText(amount: number) {
-    this.creditText.text = `Credit: ${amount} $`
-  }
+    //setup reactive updates of text
+    reaction(
+      () => state.user.bet_amt,
+      (newBet) => {
+        this.betAmountText.text = `Bet: ${newBet} $`
+      }
+    )
+    reaction(
+      () => state.user.credit_amt,
+      (newCr) => {
+        this.creditText.text = `Credit: ${newCr} $`
+      }
+    )
 
-  //ispis iznosa trenutne opklade
-  updateBetText(amount: number) {
-    this.betAmountText.text = `Bet: ${amount} $`
-  }
+    reaction(
+      () => state.winAmount,
+      (newWinAmount) => {
+        this.winAmountText.text = `Win: ${newWinAmount} $`
+      }
+    )
 
-  //ispis iznosa trenutne opklade
-  updateWinAmountText(amount: number) {
-    this.winAmountText.text = `Win: ${amount} $`
+    reaction(
+      () => state.isPlayingRound,
+      (newPl) => {
+        if(newPl === true){
+          this.betUpButton.eventMode = 'none'
+          this.betDownButton.eventMode = 'none'
+          this.playButton.eventMode = 'none'
+        } else {
+          this.betUpButton.eventMode = 'static'
+          this.betDownButton.eventMode = 'static'
+          this.playButton.eventMode = 'static'
+        }
+      }
+    )
   }
 
   updateLayout(width: number, height: number) {
-    this.container.width = this.grid.width
+    this.container.width = components.grid.width
     this.container.scale.y = this.container.scale.x
 
-    this.container.x = this.grid.x
-    this.container.y = this.grid.y + this.grid.height
+    this.container.x = components.grid.x
+    this.container.y = components.grid.y + components.grid.height
   }
 }

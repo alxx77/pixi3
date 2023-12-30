@@ -1,35 +1,28 @@
-import { Container, Text, TextStyle, Point } from "pixi.js"
-import { state } from "../state"
+import { Container, Text } from "pixi.js"
+import { state,components } from "../state"
 import { SmartContainer } from "./smartContainer"
 import { fontStyles } from "../variables"
-import { Grid } from "./grid"
-import { WinBoard } from "./winBoard"
-import { Round, WinRunningTotal } from "../server"
 
 export class Effects extends Container {
-  grid: Grid
   container: Container
-  winBoard: WinBoard
   private flyingMultiContainer:SmartContainer | undefined
   constructor() {
     super()
     this.name = "Effects"
-    this.grid = state.slotMachine.grid
-    this.winBoard = state.slotMachine.winBoard
     this.container = new Container()
     this.addChild(this.container)
   }
 
-  //fl
-  async multiFlyToWinBoard(round:Round, winRunningTotal:WinRunningTotal) {
-    const winSymbolList = this.grid.getWinSymbols(round)
+  //flying multiplier effect
+  async multiFlyToWinBoard() {
+    const winSymbolList = state.winSymbolsPerRound
     for (let i = 0; i < winSymbolList.length; i++) {
       for (const winSymbolEntry of winSymbolList[i].data) {
 
         //new container for multiplier
         this.flyingMultiContainer = new SmartContainer()
         this.flyingMultiContainer.name = "flying_multi"
-        this.flyingMultiContainer.scale.set(1.69 * this.grid.scale.x)
+        this.flyingMultiContainer.scale.set(1.69 * components.grid.scale.x)
         this.container.addChild(this.flyingMultiContainer)
 
         //2 text object to simulate outline font
@@ -55,12 +48,11 @@ export class Effects extends Container {
         await this.flyingMultiContainer.moveTo(
           target.x,
           target.y,
-          10 / (0.589 / this.grid.scale.x)
+          10 / (0.589 / components.grid.scale.x)
         )
 
-        //update values
-        winRunningTotal.value += winSymbolEntry.win
-        this.winBoard.updateText(winRunningTotal.value)
+        //update values in state
+        state.setWinRunningTotal(state.winRunningTotal + winSymbolEntry.win)
 
         //destroy multi container
         this.flyingMultiContainer.destroy()
@@ -93,7 +85,7 @@ export class Effects extends Container {
 
   //get actual winboard position
   getWinboardTargetPosition() {
-    return this.winBoard.multiText.getGlobalPosition()
+    return components.winBoard.multiText.getGlobalPosition()
   }
 
   //update target dynamically when resizing screen
@@ -107,7 +99,7 @@ export class Effects extends Container {
   updateTextSize() {
     const fm = this.container.getChildByName("flying_multi")
     if (fm) {
-      fm.scale.set(1.69 * this.grid.scale.x)
+      fm.scale.set(1.69 * components.grid.scale.x)
     }
   }
 

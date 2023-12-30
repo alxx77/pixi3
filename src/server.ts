@@ -58,7 +58,6 @@ export type Round = {
   winPerRound: number
 }
 
-export type WinRunningTotal = { value: number }
 
 //test response
 export function getResponse(betAmount: number): Response {
@@ -97,12 +96,12 @@ export function getResponse(betAmount: number): Response {
     //force wins
 
     if (round === 1) {
-      newRound.reels[0][3] = "H1"
-      newRound.reels[0][4] = "H1"
-      newRound.reels[1][4] = "H1"
-      newRound.reels[2][3] = "H1"
-      newRound.reels[2][4] = "H1"
-      newRound.reels[4][4] = "H1"
+      // newRound.reels[0][3] = "H1"
+      // newRound.reels[0][4] = "H1"
+      // newRound.reels[1][4] = "H1"
+      // newRound.reels[2][3] = "H1"
+      // newRound.reels[2][4] = "H1"
+      // newRound.reels[4][4] = "H1"
     }
 
     if (round === 2) {
@@ -166,20 +165,20 @@ export function getResponse(betAmount: number): Response {
     newRound.winPerRound = newRound.winPerRound + winPerRound
 
     //total win
-    response.totalWin = response.totalWin + (winPerRound *betAmount)
+    response.totalWin = response.totalWin + winPerRound * betAmount
   }
 
   //bet amount is deduced
   response.playerEndBalance =
-    response.playerStartBalance + response.totalWin - betAmount
+    response.playerStartBalance + response.totalWin -betAmount
 
   return response
 }
 
 export function updateUserCreditAmount(credit: number) {
-  state.user.credit_amt = credit
+  state.setUserCreditAmount(credit)
 }
 
 export function updateUserBetAmount(bet: number) {
-  state.user.bet_amt = bet
+  state.setUserBetAmount(bet)
 }

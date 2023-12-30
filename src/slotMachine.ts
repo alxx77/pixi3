@@ -1,11 +1,9 @@
 import { Grid } from "./components/grid"
-import { Layout } from "./components/layout"
-import { Observer, state } from "./state"
+import { components, state } from "./state"
 import {
   getResponse,
   getRandomSymbolStripe,
   updateUserCreditAmount,
-  WinRunningTotal,
   Round,
   User,
 } from "./server"
@@ -16,38 +14,45 @@ import { reelIds, reelHeight, soundSource } from "./variables"
 import { Winfeedback } from "./components/winFeedback"
 import { WinBoard } from "./components/winBoard"
 import { Effects } from "./components/effects"
-import { Renderer } from "pixi.js"
-import { Howl, Howler } from "howler"
+import { Howl } from "howler"
+import { reaction, makeObservable, observable, IReactionDisposer } from "mobx"
+import { Symbol } from "./components/symbol"
+
+export type WinSymbolEntry = {
+  symbol: Symbol
+  win: number
+}
+
+export type WinSymbolList = {
+  data: WinSymbolEntry[]
+}
 
 //main high game logic class
 export class SlotMachine {
-  private layout: Layout
   public background: Background
   public grid: Grid
   public gamePanel: GamePanel
   public winFeedback: Winfeedback
-  private observerWinFeedback: Observer
   public winBoard: WinBoard
   public effects: Effects
-  private renderer: Renderer
   private midWinSound: Howl
   private ambienceSound: Howl
 
-  constructor(layout: Layout, renderer: Renderer) {
-    this.layout = layout
-    state.slotMachine = this
-
-    this.renderer = renderer
-
+  constructor() {
     //initialize components
     this.background = new Background()
     this.grid = new Grid()
     this.gamePanel = new GamePanel()
     this.winFeedback = new Winfeedback()
-    this.observerWinFeedback = new Observer()
-    this.winFeedback.observerSubject.addObserver(this.observerWinFeedback)
     this.winBoard = new WinBoard()
     this.effects = new Effects()
+
+    components.background = this.background
+    components.grid = this.grid
+    components.gamePanel = this.gamePanel
+    components.winFeedback = this.winFeedback
+    components.winBoard = this.winBoard
+    components.effects = this.effects
 
     const componentList = [
       this.background,
@@ -58,7 +63,7 @@ export class SlotMachine {
       this.effects,
     ]
 
-    this.layout.addChild(...componentList)
+    components.layout.addChild(...componentList)
 
     //set up user
     const user = {
@@ -66,12 +71,7 @@ export class SlotMachine {
       credit_amt: 5000,
     } as User
 
-    //initialize state
-    state.initialStripes = []
-    state.isPlayingRound = false
-    state.user = user
-    state.layout = layout
-    state.slotMachine = this
+    state.setUser(user)
 
     //prevent this rebinding
     const updateView = this.updateView
@@ -82,9 +82,16 @@ export class SlotMachine {
     //change device orientation
     window.addEventListener("orientationchange", updateView)
 
-    //update bet & credit amount
-    this.gamePanel.updateBetText(state.user.bet_amt)
-    this.gamePanel.updateCreditText(state.user.credit_amt)
+    //prevent rebind this
+    const self = this
+
+    //listen for space
+    window.addEventListener("keydown", function (event) {
+      // Check if the pressed key is the space bar
+      if (event.key === " ") {
+        state.setSkipFeature(true)
+      }
+    })
 
     //initialize symbols
     this.setInitialSymbolStripes()
@@ -96,9 +103,9 @@ export class SlotMachine {
       src: [soundSource.midWin],
       volume: 0.1,
       loop: false,
-      sprite : {
-        'sound1':[0,4984]
-      }
+      sprite: {
+        sound1: [0, 4984],
+      },
     })
 
     this.ambienceSound = new Howl({
@@ -107,8 +114,30 @@ export class SlotMachine {
       loop: true,
     })
 
-    this.ambienceSound.play()
+    //repeat
+    // setInterval(()=>{
+    //   this.ambienceSound.play()
+    // },1000000)
 
+    // this.ambienceSound.play()
+
+    console.log(state)
+  }
+
+  //wait for winfeedback to close
+  winFeedbackClosed() {
+    const promise = new Promise<void>((resolve) => {
+      const d : IReactionDisposer = reaction(
+        () => state.winFeedbackClosed,
+        (newWinFeedbackClosed) => {
+          if (newWinFeedbackClosed === true) {
+            resolve()
+            d()
+          }
+        }
+      )
+    })
+    return promise
   }
 
   //generate and set initial symbol stripes
@@ -116,41 +145,46 @@ export class SlotMachine {
     //set initial symbol stripe
     reelIds.forEach(() => {
       //+2 needed for hidden bottom and top symbols
-      state.initialStripes.push(getRandomSymbolStripe(reelHeight + 2))
+      state.addInitialStripe(getRandomSymbolStripe(reelHeight + 2))
     })
   }
 
   //play game
   async play() {
+    if (state.user.credit_amt === 0) return
+
     //check if alreday running
-    if (state.isPlayingRound === true) return
-    state.isPlayingRound = true
+    if (state.isPlayingRound === true) {
+      console.log("Already playing")
+      return
+    }
+
+    state.setIsPlayingRound(true)
 
     //get response
     const response = getResponse(state.user.bet_amt)
 
     //set total win to 0
-    this.gamePanel.updateWinAmountText(0)
-    this.winBoard.resetBoard()
+    state.setWinAmount(0)
+
+    //set running total
+    state.setWinRunningTotal(0)
 
     //save response
-    state.response = response
-
-    //create running total as object
-    const winRunningTotal = { value: 0 } as WinRunningTotal
+    state.setResponse(response)
 
     //set new credit
-    this.gamePanel.updateCreditText(state.user.credit_amt - state.user.bet_amt)
+    state.setUserCreditAmount(state.user.credit_amt - state.user.bet_amt)
 
     console.log("play started")
     console.log(response)
 
     //loop through rounds
     for (let index = 0; index < response.rounds.length; index++) {
-      const round = response.rounds[index]
+      state.setCurrentRound(response.rounds[index])
 
       //play round
-      await this.playRound(round, winRunningTotal)
+      await this.playRound()
 
       //if not last round put a pause
       if (index < response.rounds.length - 1) {
@@ -160,59 +194,87 @@ export class SlotMachine {
           }, 10)
         })
       }
+
+      //clear skip feature
+      state.setSkipFeature(false)
     }
 
     //show winfeedback when all rounds are completed
     this.winFeedback.showWin(response.totalWin)
 
     //wait till closed
-    await new Promise<void>((resolve) => {
-      this.observerWinFeedback.update = (data) => {
-        if (data === "closed") {
-          resolve()
-        }
-      }
-    })
-
-    //update total win
-    this.gamePanel.updateWinAmountText(response.totalWin)
+    await this.winFeedbackClosed()
 
     //update credit
     updateUserCreditAmount(response.playerEndBalance)
 
-    //update credit text
-    this.gamePanel.updateCreditText(state.user.credit_amt)
+    //update total win
+    state.setWinAmount(response.totalWin)
 
-    state.isPlayingRound = false
+    state.setIsPlayingRound(false)
     console.log("play finished")
   }
 
   //play 1 round of game
-  async playRound(round: Round, winRunningTotal: WinRunningTotal) {
+  async playRound() {
     //update symbols
-    this.grid.updateSymbols(round)
+    this.grid.updateSymbols()
 
     //spin reels
     await this.grid.spinReels()
 
     //play win if any
-    if (round.winPerRound > 0) {
-
+    if (state.currentRound.winPerRound > 0) {
       //play sound
-      this.midWinSound.volume(0.1)
-      this.midWinSound.play('sound1')
+      // this.midWinSound.volume(0.1)
+      // this.midWinSound.play("sound1")
+
+      //set winning symbols
+      state.setWinSymbolsPerRound(this.getWinSymbols(state.currentRound))
 
       //flicker symbols
-      const p1 = this.grid.AnimateWin(round)
+      const p1 = this.grid.AnimateWin()
 
       //animate multiplier flying
-      const p2 = this.effects.multiFlyToWinBoard(round, winRunningTotal)
+      const p2 = this.effects.multiFlyToWinBoard()
 
       //wait until finished
       await Promise.all([p1, p2])
 
-      this.midWinSound.fade(0.1,0, 1000)
+      // this.midWinSound.fade(0.1, 0, 1000)
     }
+  }
+
+  //get winning symbols
+  getWinSymbols(round: Round) {
+    const resultList = []
+
+    //loop through payouts
+    for (const payoutPerSymbol of round.payouts) {
+      //result for each win ( there can be multiple wins in a round)
+      const win = { data: [] } as WinSymbolList
+
+      //loop through multipliers for each symbol
+      payoutPerSymbol.data.forEach((payline, plIdx) => {
+        //if there is a win in a payline
+        if (payline.win > 0) {
+          //loop through payline
+          payline.line.forEach((i, idx) => {
+            //if there is a win for a symbol
+            if (i > 0) {
+              //save win data - symbol and win amount
+              win.data.push({
+                symbol: this.grid.reels[plIdx].symbols[idx + 1],
+                win: i,
+              } as WinSymbolEntry)
+            }
+          })
+        }
+      })
+      //save
+      resultList.push(win)
+    }
+    return resultList
   }
 
   //recalc view
@@ -221,9 +283,9 @@ export class SlotMachine {
     let h = document.documentElement.clientHeight
 
     //resize
-    this.renderer.resize(w, h)
+    components.renderer.resize(w, h)
 
     //update components
-    this.layout.updateLayout(w, h)
+    components.layout.updateLayout(w, h)
   }
 }

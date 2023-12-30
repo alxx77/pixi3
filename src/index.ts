@@ -1,12 +1,14 @@
-import { InitGame } from "./initGame"
+import { initGame } from "./initGame"
 import { SlotMachine } from "./slotMachine"
-import '../styles/main.scss'
+import { components } from "./state"
+import "../styles/main.scss"
 
 //start game
-(async ()=>{
-//initialize
-const data = await InitGame()
+;(async () => {
+  //initialize
+  const data = await initGame()
 
-//get slot machine instance & transfer control
-const sm = new SlotMachine(data.layout, data.renderer)
+  //an instance of slot machine can be created
+  //and is taking over control & loop
+  components.slotMachine = new SlotMachine()
 })()

@@ -2,8 +2,9 @@ import { BlurFilter, Container, Ticker, Sprite, Texture } from "pixi.js"
 import { Symbol } from "./symbol"
 import { REEL_X_OFFSET, SYMBOL_HEIGHT, SYMBOL_WIDTH } from "../initAssets"
 import { Grid } from "./grid"
-import { Howl, Howler } from "howler"
+import { Howl } from "howler"
 import { soundSource } from "../variables"
+import { state } from "../state"
 
 //linear interpolation
 const lerp = (x: number, y: number, a: number) => x * (1 - a) + y * a
@@ -18,7 +19,6 @@ export class Reel extends Container {
   public symbols: Symbol[]
   public reelId: number
   private xOffset: number
-  private reelHeight: number
   private blurFilter: BlurFilter
   clickReelSound: Howl
   constructor(grid: Grid, reelId: number) {
@@ -29,7 +29,6 @@ export class Reel extends Container {
     this.symbols = []
     this.reelId = reelId
     this.xOffset = reelId * REEL_X_OFFSET
-    this.reelHeight = SYMBOL_HEIGHT * 5
     this.blurFilter = new BlurFilter(2)
 
     //mask
@@ -84,9 +83,10 @@ export class Reel extends Container {
     //generator return value
     let step: IteratorResult<DeltaPosition, void>
     let ticker = new Ticker()
+    const self = this
 
     //get generator for 1st part of a move
-    let g = this.performMove(0, 0, 0, ySoftMoveUpTarget, speed / 2)
+    let g = this.performMove(0, 0, 0, ySoftMoveUpTarget, speed / 2,self)
 
     //add new cb to a ticker
     //and loop until generator is done
@@ -115,7 +115,8 @@ export class Reel extends Container {
       0,
       0,
       yMainTarget,
-      speed / (0.5 + Math.random() * 0.5)
+      speed / (0.5 + Math.random() * 0.5),
+      self
     )
     ticker = new Ticker()
 
@@ -164,7 +165,8 @@ export class Reel extends Container {
       0,
       0,
       ySoftLandingMoveUpTarget,
-      speed / (4 + Math.random() * 2)
+      speed / (4 + Math.random() * 2),
+      self
     )
     ticker = new Ticker()
 
@@ -193,7 +195,8 @@ export class Reel extends Container {
       0,
       0,
       ySoftLandingFinalMoveDownTarget,
-      speed / (12 + Math.random() * 5)
+      speed / (12 + Math.random() * 5),
+      self
     )
     ticker = new Ticker()
 
@@ -230,7 +233,8 @@ export class Reel extends Container {
     yCurrent: number,
     xTarget: number,
     yTarget: number,
-    speed: number
+    speed: number,
+    reel: Reel
   ): Generator<DeltaPosition, void, number> {
     let delta = 1
 
@@ -318,8 +322,17 @@ export class Reel extends Container {
       }
 
       //update how much of the move left
+      //if skip to final is signaled
+      //just send final destination as result
+      if(state.skipFeature === true){
+        actualDX = remainingPathX
+        actualDY = remainingPathY
+      } 
+
       remainingPathX = remainingPathX - actualDX
       remainingPathY = remainingPathY - actualDY
+
+
 
       //save old averages
       prevActualDy3 = prevActualDy2

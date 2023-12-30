@@ -1,25 +1,20 @@
-import { Sprite, utils, TextStyle, Text, Container } from "pixi.js"
-import { state, Subject } from "../state"
+import { Sprite, utils, Text, Container } from "pixi.js"
+import { components, state } from "../state"
 import * as TWEEN from "@tweenjs/tween.js"
 import { fontStyles, soundSource } from "../variables"
-import { Grid } from "./grid"
-import { Howl, Howler } from "howler"
+import { Howl } from "howler"
+
 
 export class Winfeedback extends Container {
   name: string
-  grid: Grid
   container: Container
-  observerSubject: Subject
   backgroundSprite: Sprite
   winText: Text
   clickButtonSound: Howl
   showSound: Howl
   constructor() {
     super()
-
     this.name = "win feedback"
-    this.grid = state.slotMachine.grid
-    this.observerSubject = new Subject()
 
     this.container = new Container()
     this.addChild(this.container)
@@ -59,8 +54,8 @@ export class Winfeedback extends Container {
   hide() {
     const self = this
 
-    new TWEEN.Tween({ width: this.grid.width * 0.5 })
-      .to({ width: [self.grid.width, 0] }, 350)
+    new TWEEN.Tween({ width: components.grid.width * 0.5 })
+      .to({ width: [components.grid.width, 0] }, 350)
       .easing(TWEEN.Easing.Exponential.InOut)
       .interpolation(TWEEN.Interpolation.CatmullRom)
       .onUpdate(function (value: any) {
@@ -68,7 +63,7 @@ export class Winfeedback extends Container {
         self.container.scale.y = self.container.scale.x
       })
       .onComplete(() => {
-        self.observerSubject.notify("closed")
+        state.setWinFeedbackClosed(true)
       })
       .start()
   }
@@ -78,15 +73,17 @@ export class Winfeedback extends Container {
 
     this.winText.text = `You won ${win_amount}$!`
 
+    state.setWinFeedbackClosed(false)
+
     new TWEEN.Tween({ width: 0 })
-      .to({ width: [this.grid.width, this.grid.width * 0.5] }, 350)
+      .to({ width: [components.grid.width, components.grid.width * 0.5] }, 350)
       .easing(TWEEN.Easing.Exponential.In)
       .interpolation(TWEEN.Interpolation.CatmullRom)
       .onUpdate(function (value: any) {
         self.container.width = value.width
         self.container.scale.y = self.container.scale.x
       })
-      .onComplete(()=>{
+      .onComplete(() => {
         this.showSound.play()
       })
       .start()
@@ -94,11 +91,11 @@ export class Winfeedback extends Container {
 
   updateLayout(width: number, height: number) {
     if (this.container.scale.x > 0) {
-      this.container.width = this.grid.width * 0.5
+      this.container.width = components.grid.width * 0.5
       this.container.scale.y = this.container.scale.x
     }
 
-    this.container.x = this.grid.x + this.grid.width / 2
-    this.container.y = this.grid.y + this.grid.height / 4
+    this.container.x = components.grid.x + components.grid.width / 2
+    this.container.y = components.grid.y + components.grid.height / 4
   }
 }

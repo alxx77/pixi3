@@ -1,18 +1,9 @@
 import { Container } from "pixi.js"
 import { Reel } from "./reel"
 import { state } from "../state"
-import { Round, getRandomSymbolStripe } from "../server"
+import { getRandomSymbolStripe } from "../server"
 import { reelIds, stripeLength } from "../variables"
-import { Symbol } from "./symbol"
 
-type WinSymbolEntry = {
-  symbol: Symbol
-  win: number
-}
-
-type WinSymbolList = {
-  data: WinSymbolEntry[]
-}
 
 //grid class
 export class Grid extends Container {
@@ -37,7 +28,7 @@ export class Grid extends Container {
   }
 
   //update all symbols on each reel with symbols from next round
-  updateSymbols(round: Round) {
+  updateSymbols() {
     //update reel symbols
     this.reels.forEach((reel) => {
       //get new stripe
@@ -45,7 +36,7 @@ export class Grid extends Container {
 
       //insert new round data into stripe, leaving 1 random element at the end of stripe
       //because of soft landing effect
-      stripe.splice(stripe.length - 1, 0, ...round.reels[reel.reelId])
+      stripe.splice(stripe.length - 1, 0, ...state.currentRound.reels[reel.reelId])
       reel.updateSymbols(stripe)
     })
   }
@@ -72,9 +63,12 @@ export class Grid extends Container {
     await Promise.all(promises)
   }
 
-  AnimateWin = async (round: Round) => {
+  AnimateWin = async () => {
+    //skip animation if it is required
+    if (state.skipFeature === true) return
+
     //get wining symbols
-    const payoutsPerRoundList = this.getWinSymbols(round)
+    const payoutsPerRoundList = state.winSymbolsPerRound
 
     //do flickering
     for (let i = 0; i < payoutsPerRoundList.length; i++) {
@@ -103,44 +97,6 @@ export class Grid extends Container {
       //wait for flickering to finish
       await Promise.all(promises)
     }
-  }
-
-  //get winning symbols
-  getWinSymbols(round: Round) {
-    const resultList = []
-    const grid = this
-
-    //loop through payouts
-    for (const payoutPerSymbol of round.payouts) {
-
-      //result for each win ( there can be multiple wins in a round)
-      const win = { data: [] } as WinSymbolList
-
-      //loop through multipliers for each symbol
-      payoutPerSymbol.data.forEach((payline, plIdx) => {
-
-        //if there is a win in a payline
-        if (payline.win > 0) {
-
-          //loop through payline
-          payline.line.forEach((i, idx) => {
-
-            //if there is a win for a symbol
-            if (i > 0) {
-
-              //save win data - symbol and win amount
-              win.data.push({
-                symbol: grid.reels[plIdx].symbols[idx + 1],
-                win: i,
-              } as WinSymbolEntry)
-            }
-          })
-        }
-      })
-      //save
-      resultList.push(win)
-    }
-    return resultList
   }
 
   updateLayout(width: number, height: number) {
