@@ -1,7 +1,7 @@
 import { SlotMachine, WinSymbolList } from "./slotMachine"
 import { Layout } from "./components/layout"
 import { User, Response, Round } from "./server"
-import { action, makeAutoObservable, computed,makeObservable } from "mobx"
+import { action, makeAutoObservable, computed, makeObservable } from "mobx"
 import { Renderer } from "pixi.js"
 import { Background } from "./components/background"
 import { Effects } from "./components/effects"
@@ -16,7 +16,7 @@ class Store {
   _isPlayingRound: boolean
   _user: User
   _response: Response
-  _winFeedbackClosed: boolean
+  _winFeedbackVisible: boolean
   _skipFeature: boolean
   _winAmount: number
   _winSymbolsPerRound: WinSymbolList[]
@@ -26,7 +26,7 @@ class Store {
   constructor() {
     this._initialStripes = []
     this._isPlayingRound = false
-    this._winFeedbackClosed = false
+    this._winFeedbackVisible = false
     this._user = {} as User
     this._response = {} as Response
     this._skipFeature = false
@@ -61,12 +61,12 @@ class Store {
   @action
   setSkipFeature(value: boolean) {
     this._skipFeature = value
+    console.log("setSkipFeature: " + this._skipFeature)
   }
   @computed
   get skipFeature(): boolean {
     return this._skipFeature
   }
-
 
   //user
   @action
@@ -89,15 +89,14 @@ class Store {
     this._user.bet_amt = amount
   }
 
-
   //winfeedback
   @action
-  setWinFeedbackClosed(value: boolean) {
-    this._winFeedbackClosed = value
+  setWinFeedbackVisible(value: boolean) {
+    this._winFeedbackVisible = value
   }
   @computed
-  get winFeedbackClosed(): boolean {
-    return this._winFeedbackClosed
+  get winFeedbackVisible(): boolean {
+    return this._winFeedbackVisible
   }
 
   @action
@@ -140,6 +139,7 @@ class Store {
   @action
   setCurrentRound(round: Round) {
     this._currentRound = round
+    console.log("Current round: " + this._currentRound.spin)
   }
   @computed
   get currentRound(): Round {

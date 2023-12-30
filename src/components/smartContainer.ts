@@ -1,19 +1,21 @@
 import { Point, Container } from "pixi.js"
 import * as TWEEN from "@tweenjs/tween.js"
 
-type TargetPos = { x: number | undefined; y: number | undefined }
+type FinalPosition = { x: number | undefined; y: number| undefined }
 
 export class SmartContainer extends Container {
-  name: string
-  private targetPos: TargetPos
+  private finalPosition: FinalPosition
+  private tween: TWEEN.Tween<this>
+  public skipFeatureRequested: boolean
   constructor() {
     super()
-    this.targetPos = {} as TargetPos
-    this.name = ""
+    this.finalPosition = {} as FinalPosition
+    this.tween = {} as TWEEN.Tween<this>
+    this.skipFeatureRequested = false
   }
 
   //perform move to given location
-  public async moveTo(xPos: number, yPos: number, speed: number) {
+  async moveTo(xPos: number, yPos: number, speed: number, onFinished? : Function) {
     // x&y distances
     let xDist = xPos - this.position.x
     let yDist = yPos - this.position.y
@@ -26,23 +28,39 @@ export class SmartContainer extends Container {
 
     //save target position
     //so dynamic tweening works
-    this.targetPos = { x: xPos, y: yPos }
+    this.finalPosition = { x: xPos, y: yPos }
 
     return new Promise<void>((resolve) => {
-      new TWEEN.Tween(this)
-        .to(this.targetPos, totalTime)
+      this.tween = new TWEEN.Tween(this)
+        .to(this.finalPosition, totalTime)
         .easing(TWEEN.Easing.Quadratic.InOut)
         .dynamic(true) //allow dynamic tween
         .onComplete(() => {
+          (onFinished) ? onFinished() : undefined
           resolve()
+          this.visible = false
+        })
+        .onStop(() => {
+          (onFinished) ? onFinished() : undefined
+          resolve()
+          this.visible = false
         })
         .start()
     })
   }
 
+  goToFinalPosition() {
+    if(!(this.finalPosition.x && this.finalPosition.y)) return
+    this.tween.pause()
+    this.x = this.finalPosition.x
+    this.y = this.finalPosition.y
+    this.tween.stop()
+    this.skipFeatureRequested = true
+  }
+
   //update move dinamically
-  public updateMove(point: Point) {
-    this.targetPos.x = point.x
-    this.targetPos.y = point.y
+  updateMove(point: Point) {
+    this.finalPosition.x = point.x
+    this.finalPosition.y = point.y
   }
 }

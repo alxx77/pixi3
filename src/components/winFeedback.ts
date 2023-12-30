@@ -4,7 +4,6 @@ import * as TWEEN from "@tweenjs/tween.js"
 import { fontStyles, soundSource } from "../variables"
 import { Howl } from "howler"
 
-
 export class Winfeedback extends Container {
   name: string
   container: Container
@@ -30,7 +29,7 @@ export class Winfeedback extends Container {
     this.container.addChild(this.winText)
     this.eventMode = "static"
     this.on("pointerdown", () => {
-      this.clickButtonSound.play()
+      //this.clickButtonSound.play()
       this.hide()
     })
 
@@ -63,7 +62,7 @@ export class Winfeedback extends Container {
         self.container.scale.y = self.container.scale.x
       })
       .onComplete(() => {
-        state.setWinFeedbackClosed(true)
+        state.setWinFeedbackVisible(false)
       })
       .start()
   }
@@ -73,7 +72,7 @@ export class Winfeedback extends Container {
 
     this.winText.text = `You won ${win_amount}$!`
 
-    state.setWinFeedbackClosed(false)
+    state.setWinFeedbackVisible(true)
 
     new TWEEN.Tween({ width: 0 })
       .to({ width: [components.grid.width, components.grid.width * 0.5] }, 350)

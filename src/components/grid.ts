@@ -56,7 +56,7 @@ export class Grid extends Container {
       }
 
       //spin reel and save promise
-      promises.push(this.reels[reelId].spinReel(7))
+      promises.push(this.reels[reelId].spinReel(4))
     }
 
     //wait for all reels to stop
@@ -76,7 +76,7 @@ export class Grid extends Container {
       //for each payout
       for (const winSymbolEntry of payoutsPerRoundList[i].data) {
         //flicker winning symbols
-        promises.push(winSymbolEntry.symbol.flicker(7, 125))
+        promises.push(winSymbolEntry.symbol.flicker1(7, 125))
         //make a little pause after
         await new Promise<void>((resolve) => {
           setTimeout(() => {

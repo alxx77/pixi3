@@ -88,7 +88,12 @@ export class SlotMachine {
     //listen for space
     window.addEventListener("keydown", function (event) {
       // Check if the pressed key is the space bar
-      if (event.key === " ") {
+      if (
+        event.key === " " &&
+        state.isPlayingRound &&
+        state.skipFeature === false &&
+        state.winFeedbackVisible === false
+      ) {
         state.setSkipFeature(true)
       }
     })
@@ -125,12 +130,12 @@ export class SlotMachine {
   }
 
   //wait for winfeedback to close
-  winFeedbackClosed() {
+  winFeedbackVisibleChanged() {
     const promise = new Promise<void>((resolve) => {
-      const d : IReactionDisposer = reaction(
-        () => state.winFeedbackClosed,
-        (newWinFeedbackClosed) => {
-          if (newWinFeedbackClosed === true) {
+      const d: IReactionDisposer = reaction(
+        () => state.winFeedbackVisible,
+        (newWF,oldWF) => {
+          if (newWF === false && oldWF === true) {
             resolve()
             d()
           }
@@ -191,19 +196,21 @@ export class SlotMachine {
         await new Promise<void>((resolve) => {
           setTimeout(() => {
             resolve()
-          }, 10)
+          }, 750)
         })
       }
 
-      //clear skip feature
-      state.setSkipFeature(false)
+      //clear skip feature if it was requested
+      if (state.skipFeature === true) {
+        state.setSkipFeature(false)
+      }
     }
 
     //show winfeedback when all rounds are completed
     this.winFeedback.showWin(response.totalWin)
 
     //wait till closed
-    await this.winFeedbackClosed()
+    await this.winFeedbackVisibleChanged()
 
     //update credit
     updateUserCreditAmount(response.playerEndBalance)
