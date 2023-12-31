@@ -5,7 +5,8 @@
     "howler": "^2.2.4",
     "mobx": "^6.12.0",
     "pixi-spine": "^4.0.4",
-    "pixi.js": "^7.3.2"
+    "pixi.js": "^7.3.2",
+    "smart-timeout": "^2.7.1"
   },
   "name": "pixi3",
   "version": "1.0.0",

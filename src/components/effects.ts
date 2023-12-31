@@ -3,11 +3,12 @@ import { state, components } from "../state"
 import { SmartContainer } from "./smartContainer"
 import { fontStyles } from "../variables"
 import { reaction } from "mobx"
+import Timeout, { TimeoutInstance } from "smart-timeout"
 
 export class Effects extends Container {
   container: Container
   private flyingMultiContainerList: SmartContainer[]
-  private timeoutList: NodeJS.Timeout[]
+  private timeoutList: TimeoutInstance[]
   private flyingMultiContainerFinishPromises: Promise<void>[]
   constructor() {
     super()
@@ -21,20 +22,17 @@ export class Effects extends Container {
 
     //when skip feature request is made
     //tell all existing multis to go to final destination
-    //also cancel timeouts
+    //also reset timeouts to 0ms
     reaction(
       () => state.skipFeature,
-      (newVal,oldVal) => {
+      (newVal, oldVal) => {
         if (newVal === true && oldVal === false) {
           this.flyingMultiContainerList.forEach((el) => {
             el.goToFinalPosition()
           })
-
-          // for (const iterator of this.timeoutList) {
-          //   clearTimeout(iterator)
-          // }
-
-          console.log('after')
+          for (const timeout of this.timeoutList) {
+            timeout.reset(0)
+          }
         }
       }
     )
@@ -94,18 +92,15 @@ export class Effects extends Container {
         if (state.skipFeature === false) {
           //make a little pause if there is no skip feature request
           await new Promise<void>((resolve) => {
-
-              const t = setTimeout(() => {
-                resolve()
-              }, 100 + Math.random() * 50)
-              this.timeoutList.push(t)
+            const t = Timeout.instantiate(() => {
+              resolve()
+            }, 100 + Math.random() * 50)
+            this.timeoutList.push(t)
           })
-         } else {
-          //if there is skipfeture request
-          //set final position on created container
-          if(flyingMultiContainer.skipFeatureRequested === false){
-            flyingMultiContainer.goToFinalPosition()
-          }
+        } else {
+          //if there IS skipFeature request
+          //set final position on created container immediately
+          flyingMultiContainer.goToFinalPosition()
         }
       }
 
