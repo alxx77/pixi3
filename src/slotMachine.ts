@@ -15,8 +15,9 @@ import { Winfeedback } from "./components/winFeedback"
 import { WinBoard } from "./components/winBoard"
 import { Effects } from "./components/effects"
 import { Howl } from "howler"
-import { reaction, makeObservable, observable, IReactionDisposer } from "mobx"
+import { reaction, IReactionDisposer } from "mobx"
 import { Symbol } from "./components/symbol"
+import { settings } from "./settings"
 
 export type WinSymbolEntry = {
   symbol: Symbol
@@ -27,7 +28,7 @@ export type WinSymbolList = {
   data: WinSymbolEntry[]
 }
 
-//main high game logic class
+//main high logic class
 export class SlotMachine {
   public background: Background
   public grid: Grid
@@ -47,6 +48,7 @@ export class SlotMachine {
     this.winBoard = new WinBoard()
     this.effects = new Effects()
 
+    //save component references
     components.background = this.background
     components.grid = this.grid
     components.gamePanel = this.gamePanel
@@ -63,6 +65,7 @@ export class SlotMachine {
       this.effects,
     ]
 
+    //add to root container
     components.layout.addChild(...componentList)
 
     //set up user
@@ -82,59 +85,100 @@ export class SlotMachine {
     //change device orientation
     window.addEventListener("orientationchange", updateView)
 
-    //prevent rebind this
-    const self = this
-
     //listen for space
     window.addEventListener("keydown", function (event) {
-      // Check if the pressed key is the space bar
-      if (
-        event.key === " " &&
-        state.isPlayingRound &&
-        state.skipFeature === false &&
-        state.winFeedbackVisible === false
-      ) {
-        state.setSkipFeature(true)
+      if (event.key === " " && state.isSpaceBarKeyDown === false) {
+        state.setSpaceBarKeyDown(true)
       }
     })
+
+    window.addEventListener("keyup", function (event) {
+      // Check if space bar is released
+      if (event.key === " " && state.isSpaceBarKeyDown === true) {
+        state.setSpaceBarKeyDown(false)
+      }
+    })
+
+    //check space bar presses
+    reaction(
+      () => state.isSpaceBarKeyDown,
+      (newSBD, oldSBD) => {
+        //if space bar was pressed...
+        if (newSBD === true && oldSBD === false) {
+          //check is round is playing...
+          if (state.isPlayingRound === false) {
+            //request to play round
+            state.setPlayRoundRequest(true)
+          } else {
+            //request to skip feature
+            state.setSkipFeature(true)
+          }
+        }
+      }
+    )
+
+    //watch for play requests
+    reaction(
+      () => state.playRoundRequest,
+      (newPR, oldPR) => {
+        //if new request
+        if (newPR === true && oldPR === false) {
+          //check is round is playing...
+          if (state.isPlayingRound === true) {
+            //exit
+            return
+          } else {
+            this.play()
+          }
+        }
+      }
+    )
 
     //initialize symbols
     this.setInitialSymbolStripes()
     this.grid.initReelSymbols()
 
+    //set correct sizes
     this.updateView()
 
+    const sm = this
+
+    //instantiate sounds
     this.midWinSound = new Howl({
       src: [soundSource.midWin],
-      volume: 0.1,
+      volume: settings.sound.soundFX.volume,
       loop: false,
       sprite: {
         sound1: [0, 4984],
       },
     })
 
+    this.midWinSound.on("fade", () => {
+      sm.midWinSound.stop()
+      sm.midWinSound.volume(settings.sound.soundFX.volume)
+    })
+
     this.ambienceSound = new Howl({
       src: [soundSource.ambience],
-      volume: 0.3,
+      volume: settings.sound.ambienceSound.volume,
       loop: true,
     })
 
     //repeat
-    // setInterval(()=>{
-    //   this.ambienceSound.play()
-    // },1000000)
-
-    // this.ambienceSound.play()
-
-    console.log(state)
+    if (settings.sound.ambienceSound.play) {
+      setInterval(() => {
+        this.ambienceSound.play()
+      }, 1000000)
+      this.ambienceSound.play()
+    }
   }
 
   //wait for winfeedback to close
-  winFeedbackVisibleChanged() {
+  winFeedbackVisibilityChanged() {
     const promise = new Promise<void>((resolve) => {
       const d: IReactionDisposer = reaction(
         () => state.winFeedbackVisible,
-        (newWF,oldWF) => {
+        (newWF, oldWF) => {
           if (newWF === false && oldWF === true) {
             resolve()
             d()
@@ -155,10 +199,11 @@ export class SlotMachine {
   }
 
   //play game
+  //*********************************************************************************** */
   async play() {
     if (state.user.credit_amt === 0) return
 
-    //check if alreday running
+    //check if already running
     if (state.isPlayingRound === true) {
       console.log("Already playing")
       return
@@ -210,7 +255,7 @@ export class SlotMachine {
     this.winFeedback.showWin(response.totalWin)
 
     //wait till closed
-    await this.winFeedbackVisibleChanged()
+    await this.winFeedbackVisibilityChanged()
 
     //update credit
     updateUserCreditAmount(response.playerEndBalance)
@@ -219,7 +264,16 @@ export class SlotMachine {
     state.setWinAmount(response.totalWin)
 
     state.setIsPlayingRound(false)
+    //reset trigger
+    state.setPlayRoundRequest(false)
+
+    //clear skip feature in case space bar was presses during winfeedback
+    if (state.skipFeature === true) {
+      state.setSkipFeature(false)
+    }
     console.log("play finished")
+
+    console.log(state)
   }
 
   //play 1 round of game
@@ -233,8 +287,9 @@ export class SlotMachine {
     //play win if any
     if (state.currentRound.winPerRound > 0) {
       //play sound
-      // this.midWinSound.volume(0.1)
-      // this.midWinSound.play("sound1")
+      if (state.skipFeature === false) {
+        this.midWinSound.play("sound1")
+      }
 
       //set winning symbols
       state.setWinSymbolsPerRound(this.getWinSymbols(state.currentRound))
@@ -248,7 +303,9 @@ export class SlotMachine {
       //wait until finished
       await Promise.all([p1, p2])
 
-      // this.midWinSound.fade(0.1, 0, 1000)
+      if (this.midWinSound.playing() === true) {
+        this.midWinSound.fade(settings.sound.soundFX.volume, 0, 1000)
+      }
     }
   }
 

@@ -1,3 +1,12 @@
 {
-  "cSpell.words": ["multis", "winboard"]
+  "cSpell.words": [
+    "multis",
+    "mycanvas",
+    "onfade",
+    "pixi",
+    "recalc",
+    "tweenjs",
+    "winboard"
+  ],
+  "cSpell.allowCompoundWords": true
 }

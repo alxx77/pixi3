@@ -23,7 +23,7 @@ export async function initGame() {
     autoDensity: true,
   })
 
-  //push to state layout & renderer
+  //save layout & renderer
   components.renderer = renderer
   components.layout = layout
 
@@ -32,7 +32,7 @@ export async function initGame() {
   global.__PIXI_STAGE__ = layout
   global.__PIXI_RENDERER__ = renderer
 
-  //add stage & tween to main ticker
+  //add stage & TWEEN to main ticker
   const ticker = new Ticker()
   ticker.add(() => {
     renderer.render(layout)

@@ -76,7 +76,7 @@ export class Grid extends Container {
       //for each payout
       for (const winSymbolEntry of payoutsPerRoundList[i].data) {
         //flicker winning symbols
-        promises.push(winSymbolEntry.symbol.flicker1(7, 125))
+        promises.push(winSymbolEntry.symbol.flicker1(3, 100))
         //make a little pause after
         await new Promise<void>((resolve) => {
           setTimeout(() => {

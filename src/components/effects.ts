@@ -116,9 +116,9 @@ export class Effects extends Container {
       //wait for all multis to finish fly
       await Promise.all(this.flyingMultiContainerFinishPromises)
 
-      this.timeoutList = []
-      this.flyingMultiContainerList = []
-      this.flyingMultiContainerFinishPromises = []
+      this.timeoutList.length = 0
+      this.flyingMultiContainerList.length = 0
+      this.flyingMultiContainerFinishPromises.length = 0
 
       //clear
       const children = this.container.removeChildren()

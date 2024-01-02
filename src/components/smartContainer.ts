@@ -30,6 +30,9 @@ export class SmartContainer extends Container {
     //so dynamic tweening works
     this.finalPosition = { x: xPos, y: yPos }
 
+    // important when dynamic tweening
+    // new instances of target object should not be used 
+    //once tween starts  
     return new Promise<void>((resolve) => {
       this.tween = new TWEEN.Tween(this)
         .to(this.finalPosition, totalTime)

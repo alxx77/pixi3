@@ -22,17 +22,26 @@ export const fontStyles = {
   gamePanelCredit: new TextStyle({
     fontFamily: "Troika ",
     fontSize: "64px",
-    fill: "yellow",
+    fill: "#d69b33",
+    dropShadow: true,
+    dropShadowColor: 'red',
+    dropShadowDistance:5
   }),
   gamePanelWin: new TextStyle({
     fontFamily: "Troika ",
     fontSize: "72px",
     fill: "white",
+    dropShadow: true,
+    dropShadowColor: 'red',
+    dropShadowDistance:5
   }),
   gamePanelBet: new TextStyle({
     fontFamily: "Troika ",
     fontSize: "48px",
     fill: "white",
+    dropShadow: true,
+    dropShadowColor: 'red',
+    dropShadowDistance:5
   }),
 
   winFeedbackText: new TextStyle({
@@ -50,6 +59,14 @@ export const fontStyles = {
     fontFamily: "Troika ",
     fontSize: "96px",
     fill: "orange",
+  }),
+  skipFeatureText: new TextStyle({
+    fontFamily: "Troika ",
+    fontSize: "42px",
+    fill: "#dbc8c8",
+    dropShadow: true,
+    dropShadowColor: 'red',
+    dropShadowDistance:5
   }),
 }
 

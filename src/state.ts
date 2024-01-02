@@ -22,6 +22,8 @@ class Store {
   _winSymbolsPerRound: WinSymbolList[]
   _winRunningTotal: number
   _currentRound: Round
+  _spaceBarKeyDown: boolean
+  _playRoundRequest:boolean
 
   constructor() {
     this._initialStripes = []
@@ -34,6 +36,8 @@ class Store {
     this._winSymbolsPerRound = {} as WinSymbolList[]
     this._winRunningTotal = 0
     this._currentRound = {} as Round
+    this._spaceBarKeyDown = false
+    this._playRoundRequest = false
     makeAutoObservable(this)
   }
 
@@ -51,6 +55,7 @@ class Store {
   @action
   setIsPlayingRound(value: boolean) {
     this._isPlayingRound = value
+    console.log("is round playing: " + this._isPlayingRound)
   }
   @computed
   get isPlayingRound(): boolean {
@@ -145,6 +150,26 @@ class Store {
   get currentRound(): Round {
     return this._currentRound
   }
+
+  @action
+  setSpaceBarKeyDown(value: boolean) {
+    this._spaceBarKeyDown = value
+  }
+  @computed
+  get isSpaceBarKeyDown(): boolean {
+    return this._spaceBarKeyDown
+  }
+
+  @action
+  setPlayRoundRequest(value: boolean) {
+    this._playRoundRequest = value
+  }
+
+  @computed
+  get playRoundRequest(): boolean {
+    return this._playRoundRequest
+  }
+
 }
 
 export const state = new Store()

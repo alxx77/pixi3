@@ -96,12 +96,12 @@ export function getResponse(betAmount: number): Response {
     //force wins
 
     if (round === 1) {
-      // newRound.reels[0][3] = "H1"
-      // newRound.reels[0][4] = "H1"
-      // newRound.reels[1][4] = "H1"
-      // newRound.reels[2][3] = "H1"
-      // newRound.reels[2][4] = "H1"
-      // newRound.reels[4][4] = "H1"
+      newRound.reels[0][3] = "H1"
+      newRound.reels[0][4] = "H1"
+      newRound.reels[1][4] = "H1"
+      newRound.reels[2][3] = "H1"
+      newRound.reels[2][4] = "H1"
+      newRound.reels[4][4] = "H1"
     }
 
     if (round === 2) {

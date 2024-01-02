@@ -1,4 +1,4 @@
-import { Container, utils, Sprite, Text } from "pixi.js"
+import { Container, utils, Sprite, Text, ColorMatrixFilter } from "pixi.js"
 import { components, state } from "../state"
 import { updateUserBetAmount } from "../server"
 import { fontStyles, soundSource } from "../variables"
@@ -14,7 +14,9 @@ export class GamePanel extends Container {
   creditText: Text
   betAmountText: Text
   winAmountText: Text
+  skipFeatureText: Text
   clickButtonSound: Howl
+  private brightnessFilter: ColorMatrixFilter
   constructor() {
     super()
     this.container = new Container()
@@ -25,7 +27,7 @@ export class GamePanel extends Container {
     this.playButton.eventMode = "static"
     this.playButton.on("pointerdown", () => {
       this.clickButtonSound.play()
-      components.slotMachine.play()
+      state.setPlayRoundRequest(true)
     })
     this.playButton.scale.set(0.6)
     this.playButton.x = 432
@@ -49,10 +51,8 @@ export class GamePanel extends Container {
     this.betDownButton.y = 146
     this.betDownButton.eventMode = "static"
     this.betDownButton.on("pointerdown", () => {
-      if (state.user.bet_amt > 1) {
-        this.clickButtonSound.play()
-        updateUserBetAmount(state.user.bet_amt - 1)
-      }
+      this.clickButtonSound.play()
+      updateUserBetAmount(state.user.bet_amt - 1)
     })
 
     //credit
@@ -70,8 +70,17 @@ export class GamePanel extends Container {
     this.winAmountText.x = 10
     this.winAmountText.y = 70
 
+    //skip feature text
+    this.skipFeatureText = new Text(
+      `Press Space to Skip`,
+      fontStyles.skipFeatureText
+    )
+    this.skipFeatureText.x = 1225 / 2
+    this.skipFeatureText.y = 270
+    this.skipFeatureText.anchor.set(0.5, 0)
+
     //add to container
-    let conts = [
+    let controls = [
       this.playButton,
       this.betUpButton,
       this.betDownButton,
@@ -79,14 +88,15 @@ export class GamePanel extends Container {
       this.creditText,
       this.betAmountText,
       this.winAmountText,
+      this.skipFeatureText,
     ]
 
-    this.container.addChild(...conts)
+    this.container.addChild(...controls)
 
     //sound
     this.clickButtonSound = new Howl({
       src: [soundSource.clickButton],
-      volume: 0.5,
+      volume: 0.4,
       loop: false,
     })
 
@@ -114,14 +124,28 @@ export class GamePanel extends Container {
     reaction(
       () => state.isPlayingRound,
       (newPl) => {
-        if(newPl === true){
-          this.betUpButton.eventMode = 'none'
-          this.betDownButton.eventMode = 'none'
-          this.playButton.eventMode = 'none'
+        if (newPl === true) {
+          this.betUpButton.eventMode = "none"
+          this.betDownButton.eventMode = "none"
+          this.playButton.eventMode = "none"
         } else {
-          this.betUpButton.eventMode = 'static'
-          this.betDownButton.eventMode = 'static'
-          this.playButton.eventMode = 'static'
+          this.betUpButton.eventMode = "static"
+          this.betDownButton.eventMode = "static"
+          this.playButton.eventMode = "static"
+        }
+      }
+    )
+
+    this.brightnessFilter = new ColorMatrixFilter()
+    this.brightnessFilter.brightness(1.4, false)
+    
+    reaction(
+      () => state.isSpaceBarKeyDown,
+      (newVal,oldVal) => {
+        if (newVal === true && oldVal === false) {
+          this.playButton.filters = [this.brightnessFilter]
+        } else {
+          this.playButton.filters = []
         }
       }
     )

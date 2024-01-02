@@ -3,6 +3,7 @@ import { components, state } from "../state"
 import * as TWEEN from "@tweenjs/tween.js"
 import { fontStyles, soundSource } from "../variables"
 import { Howl } from "howler"
+import Timeout, { TimeoutInstance } from "smart-timeout"
 
 export class Winfeedback extends Container {
   name: string
@@ -27,12 +28,7 @@ export class Winfeedback extends Container {
     this.winText = new Text(`You won 0$`, fontStyles.winFeedbackText)
     this.winText.anchor.set(0.5)
     this.container.addChild(this.winText)
-    this.eventMode = "static"
-    this.on("pointerdown", () => {
-      //this.clickButtonSound.play()
-      this.hide()
-    })
-
+  
     //hide container
     this.container.scale.set(0)
 
@@ -67,10 +63,10 @@ export class Winfeedback extends Container {
       .start()
   }
 
-  showWin(win_amount: number) {
+  showWin(winAmount: number) {
     const self = this
 
-    this.winText.text = `You won ${win_amount}$!`
+    this.winText.text = `You won ${winAmount}$!`
 
     state.setWinFeedbackVisible(true)
 
@@ -84,6 +80,7 @@ export class Winfeedback extends Container {
       })
       .onComplete(() => {
         this.showSound.play()
+        Timeout.instantiate(() =>this.hide(), 850)
       })
       .start()
   }
