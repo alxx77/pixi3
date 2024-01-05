@@ -2,8 +2,15 @@ import { Container } from "pixi.js"
 import { Reel } from "./reel"
 import { state } from "../state"
 import { getRandomSymbolStripe } from "../server"
-import { reelIds, stripeLength } from "../variables"
-
+import {
+  reelHeight,
+  reelIds,
+  spinSpeed,
+  stripeLength,
+  symbolStripeLength,
+} from "../variables"
+import { reaction } from "mobx"
+import { SYMBOL_HEIGHT } from "../initAssets"
 
 //grid class
 export class Grid extends Container {
@@ -19,30 +26,33 @@ export class Grid extends Container {
     })
   }
 
-  //initialize reels
-  initReelSymbols() {
-    //update symbols on reels
-    this.reels.forEach((reel) => {
-      reel.updateSymbols(state.initialStripes[reel.reelId])
-    })
-  }
-
   //update all symbols on each reel with symbols from next round
-  updateSymbols() {
+  // updateSymbols() {
+  //   //update reel symbols
+  //   this.reels.forEach((reel) => {
+  //     //get new stripe
+  //     const stripe = getRandomSymbolStripe(stripeLength)
+
+  //     //insert new round data into stripe, leaving 1 random element at the end of stripe
+  //     //because of soft landing effect
+  //     stripe.splice(stripe.length - 1, 0, ...state.currentRound.reels[reel.reelId])
+  //     reel.updateSymbols(stripe)
+  //   })
+  // }
+
+  updateReels() {
     //update reel symbols
     this.reels.forEach((reel) => {
-      //get new stripe
-      const stripe = getRandomSymbolStripe(stripeLength)
+      //get new stripe index for reel
+      reel.stripeIndex = Math.floor(Math.random() * symbolStripeLength)
 
-      //insert new round data into stripe, leaving 1 random element at the end of stripe
-      //because of soft landing effect
-      stripe.splice(stripe.length - 1, 0, ...state.currentRound.reels[reel.reelId])
-      reel.updateSymbols(stripe)
+      //generate symbols
+      reel.setSymbols()
     })
   }
 
   //spin
-  async spinReels() {
+  async startSpinReels() {
     const promises = []
     //for each reel
     for (const reelId of reelIds) {
@@ -55,12 +65,50 @@ export class Grid extends Container {
         })
       }
 
-      //spin reel and save promise
-      promises.push(this.reels[reelId].spinReel(4))
+      this.reels[reelId].spin = true
+
+      //request spin start and save promise
+      promises.push(this.reels[reelId].startSpinReel())
     }
 
-    //wait for all reels to stop
+    //wait for all reels to start
     await Promise.all(promises)
+  }
+
+  async stopSpinReels() {
+    const promises = []
+    //for each reel
+    for (const reelId of reelIds) {
+      //add symbols from round
+      for (let i = 0; i < reelHeight; i++) {
+        this.reels[reelId].addSymbol(state.currentRound.reels[reelId][i])
+      }
+      //add one more random
+      this.reels[reelId].addSymbol(
+        state.symbolStripe[this.reels[reelId].getNextStripeIndex()]
+      )
+
+      this.reels[reelId].spin = false
+
+      //request stop and save promise
+      promises.push(this.reels[reelId].stopReel())
+    }
+
+    //wait for all reels to start
+    await Promise.all(promises)
+
+    for (const reelId of reelIds) {
+      //clear non visible symbols
+      for (let i = 0; i < reelHeight + 1; i++) {
+        if (this.reels[reelId].symbols[0].y > 5 * SYMBOL_HEIGHT) {
+          const s = this.reels[reelId].symbols.shift()
+          if (s) {
+            s.filters = []
+            s.destroy()
+          }
+        }
+      }
+    }
   }
 
   AnimateWin = async () => {

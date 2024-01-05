@@ -1,7 +1,7 @@
 import { SlotMachine, WinSymbolList } from "./slotMachine"
 import { Layout } from "./components/layout"
 import { User, Response, Round } from "./server"
-import { action, makeAutoObservable, computed, makeObservable } from "mobx"
+import { action, makeAutoObservable, computed } from "mobx"
 import { Renderer } from "pixi.js"
 import { Background } from "./components/background"
 import { Effects } from "./components/effects"
@@ -12,7 +12,7 @@ import { WinBoard } from "./components/winBoard"
 import { Winfeedback } from "./components/winFeedback"
 
 class Store {
-  _initialStripes: string[][]
+  //_initialStripes: string[][]
   _isPlayingRound: boolean
   _user: User
   _response: Response
@@ -24,9 +24,12 @@ class Store {
   _currentRound: Round
   _spaceBarKeyDown: boolean
   _playRoundRequest:boolean
+  _startReelSpinRequest: boolean
+  _stopReelSpinRequest: boolean
+  _symbolStripe: string[]
 
   constructor() {
-    this._initialStripes = []
+    //this._initialStripes = []
     this._isPlayingRound = false
     this._winFeedbackVisible = false
     this._user = {} as User
@@ -38,18 +41,21 @@ class Store {
     this._currentRound = {} as Round
     this._spaceBarKeyDown = false
     this._playRoundRequest = false
+    this._startReelSpinRequest = false
+    this._stopReelSpinRequest = false
+    this._symbolStripe = []
     makeAutoObservable(this)
   }
 
   //stripes
-  @action
-  addInitialStripe(stripe: string[]) {
-    this.initialStripes.push(stripe)
-  }
-  @computed
-  get initialStripes(): string[][] {
-    return this._initialStripes
-  }
+  // @action
+  // addInitialStripe(stripe: string[]) {
+  //   this.initialStripes.push(stripe)
+  // }
+  // @computed
+  // get initialStripes(): string[][] {
+  //   return this._initialStripes
+  // }
 
   //round playing
   @action
@@ -164,13 +170,41 @@ class Store {
   setPlayRoundRequest(value: boolean) {
     this._playRoundRequest = value
   }
-
   @computed
   get playRoundRequest(): boolean {
     return this._playRoundRequest
   }
 
+  @action
+  setStartReelSpinRequest(value: boolean) {
+    this._startReelSpinRequest = value
+  }
+  @computed
+  get startReelSpinRequest(): boolean {
+    return this._startReelSpinRequest
+  }
+
+  @action
+  setStopReelSpinRequest(value: boolean) {
+    this._stopReelSpinRequest = value
+  }
+  @computed
+  get stopReelSpinRequest(): boolean {
+    return this._stopReelSpinRequest
+  }
+
+  @action
+  setSymbolStripe(stripe: string[]) {
+    this._symbolStripe = stripe
+  }
+  
+  @computed
+  get symbolStripe(): string[] {
+    return this._symbolStripe
+  }
+
 }
+
 
 export const state = new Store()
 

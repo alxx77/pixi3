@@ -10,7 +10,13 @@ import {
 
 import { Background } from "./components/background"
 import { GamePanel } from "./components/gamePanel"
-import { reelIds, reelHeight, soundSource } from "./variables"
+import {
+  reelIds,
+  reelHeight,
+  soundSource,
+  symbolStripeLength,
+  spinReelTimeout,
+} from "./variables"
 import { Winfeedback } from "./components/winFeedback"
 import { WinBoard } from "./components/winBoard"
 import { Effects } from "./components/effects"
@@ -18,6 +24,7 @@ import { Howl } from "howler"
 import { reaction, IReactionDisposer } from "mobx"
 import { Symbol } from "./components/symbol"
 import { settings } from "./settings"
+import Timeout, { TimeoutInstance } from "smart-timeout"
 
 export type WinSymbolEntry = {
   symbol: Symbol
@@ -38,8 +45,11 @@ export class SlotMachine {
   public effects: Effects
   private midWinSound: Howl
   private ambienceSound: Howl
+  private timeOuts: TimeoutInstance[]
 
   constructor() {
+    this.timeOuts = []
+
     //initialize components
     this.background = new Background()
     this.grid = new Grid()
@@ -134,9 +144,15 @@ export class SlotMachine {
       }
     )
 
-    //initialize symbols
-    this.setInitialSymbolStripes()
-    this.grid.initReelSymbols()
+    reaction(
+      () => state.symbolStripe,
+      () => {
+        this.grid.updateReels()
+      }
+    )
+
+    //set symbol stripe
+    this.setStripe()
 
     //set correct sizes
     this.updateView()
@@ -189,13 +205,8 @@ export class SlotMachine {
     return promise
   }
 
-  //generate and set initial symbol stripes
-  setInitialSymbolStripes() {
-    //set initial symbol stripe
-    reelIds.forEach(() => {
-      //+2 needed for hidden bottom and top symbols
-      state.addInitialStripe(getRandomSymbolStripe(reelHeight + 2))
-    })
+  setStripe() {
+    state.setSymbolStripe(getRandomSymbolStripe(symbolStripeLength))
   }
 
   //play game
@@ -214,14 +225,17 @@ export class SlotMachine {
     //get response
     const response = getResponse(state.user.bet_amt)
 
+    //save response
+    state.setResponse(response)
+
     //set total win to 0
     state.setWinAmount(0)
 
     //set running total
     state.setWinRunningTotal(0)
 
-    //save response
-    state.setResponse(response)
+    //set symbol stripe
+    //this.setStripe()
 
     //set new credit
     state.setUserCreditAmount(state.user.credit_amt - state.user.bet_amt)
@@ -231,6 +245,10 @@ export class SlotMachine {
 
     //loop through rounds
     for (let index = 0; index < response.rounds.length; index++) {
+      this.grid.startSpinReels()
+
+      console.log("spin started")
+
       state.setCurrentRound(response.rounds[index])
 
       //play round
@@ -278,11 +296,19 @@ export class SlotMachine {
 
   //play 1 round of game
   async playRound() {
-    //update symbols
-    this.grid.updateSymbols()
+    await new Promise<void>((resolve) => {
+      this.timeOuts.push(
+        Timeout.instantiate(() => {
+          resolve()
+        }, spinReelTimeout)
+      )
+    })
 
-    //spin reels
-    await this.grid.spinReels()
+    //stop reels
+    await this.grid.stopSpinReels()
+
+    //set winning symbols
+    state.setWinSymbolsPerRound(this.getWinSymbols(state.currentRound))
 
     //play win if any
     if (state.currentRound.winPerRound > 0) {
@@ -290,9 +316,6 @@ export class SlotMachine {
       if (state.skipFeature === false) {
         this.midWinSound.play("sound1")
       }
-
-      //set winning symbols
-      state.setWinSymbolsPerRound(this.getWinSymbols(state.currentRound))
 
       //flicker symbols
       const p1 = this.grid.AnimateWin()

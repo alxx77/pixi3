@@ -6,6 +6,12 @@ export const stripeLength = 21
 
 export const reelHeight = 5
 
+export const symbolStripeLength = 200
+
+export const spinSpeed = 25
+
+export const spinReelTimeout = 1000
+
 //font styles
 export const fontStyles = {
   effectsFlyingMulti: new TextStyle({
