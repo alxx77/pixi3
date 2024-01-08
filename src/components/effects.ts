@@ -46,8 +46,10 @@ export class Effects extends Container {
       this.timeoutList = []
       this.flyingMultiContainerList = []
       this.flyingMultiContainerFinishPromises = []
+
       //for each win group
       for (const winSymbolEntry of winSymbolList[i].data) {
+
         //new container for multiplier
         const flyingMultiContainer = new SmartContainer()
         this.flyingMultiContainerList.push(flyingMultiContainer)
@@ -92,7 +94,7 @@ export class Effects extends Container {
         if (state.skipFeature === false) {
           //make a little pause if there is no skip feature request
           await new Promise<void>((resolve) => {
-            const t = Timeout.instantiate(() => {
+            const t = Timeout.instantiate('fmt',() => {
               resolve()
             }, 100 + Math.random() * 50)
             this.timeoutList.push(t)
@@ -107,7 +109,7 @@ export class Effects extends Container {
       //pause between multiple wins if not last win
       if (i < winSymbolList.length - 1) {
         await new Promise<void>((resolve) => {
-          setTimeout(() => {
+          Timeout.instantiate('between-wins', () => {
             resolve()
           }, 75 + Math.random() * 75)
         })
@@ -126,7 +128,9 @@ export class Effects extends Container {
         child.destroy()
       }
 
-      console.log("effects finished")
+      //clear timeouts
+      Timeout.clear('fmt',true)
+      Timeout.clear('between-wins',true)
     }
   }
 

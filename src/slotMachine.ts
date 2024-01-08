@@ -45,11 +45,8 @@ export class SlotMachine {
   public effects: Effects
   private midWinSound: Howl
   private ambienceSound: Howl
-  private timeOuts: TimeoutInstance[]
 
   constructor() {
-    this.timeOuts = []
-
     //initialize components
     this.background = new Background()
     this.grid = new Grid()
@@ -112,9 +109,9 @@ export class SlotMachine {
     //check space bar presses
     reaction(
       () => state.isSpaceBarKeyDown,
-      (newSBD, oldSBD) => {
+      (newVal, oldVal) => {
         //if space bar was pressed...
-        if (newSBD === true && oldSBD === false) {
+        if (newVal === true && oldVal === false) {
           //check is round is playing...
           if (state.isPlayingRound === false) {
             //request to play round
@@ -130,9 +127,9 @@ export class SlotMachine {
     //watch for play requests
     reaction(
       () => state.playRoundRequest,
-      (newPR, oldPR) => {
+      (newVal, oldVal) => {
         //if new request
-        if (newPR === true && oldPR === false) {
+        if (newVal === true && oldVal === false) {
           //check is round is playing...
           if (state.isPlayingRound === true) {
             //exit
@@ -151,13 +148,22 @@ export class SlotMachine {
       }
     )
 
+    reaction(
+      () => state.skipFeature,
+      (newVal, oldVal) => {
+        if (newVal === true && oldVal === false) {
+          Timeout.reset("spin-timeout", 0)
+        }
+      }
+    )
+
     //set symbol stripe
     this.setStripe()
 
     //set correct sizes
     this.updateView()
 
-    const sm = this
+    const self = this
 
     //instantiate sounds
     this.midWinSound = new Howl({
@@ -170,8 +176,8 @@ export class SlotMachine {
     })
 
     this.midWinSound.on("fade", () => {
-      sm.midWinSound.stop()
-      sm.midWinSound.volume(settings.sound.soundFX.volume)
+      self.midWinSound.stop()
+      self.midWinSound.volume(settings.sound.soundFX.volume)
     })
 
     this.ambienceSound = new Howl({
@@ -192,12 +198,12 @@ export class SlotMachine {
   //wait for winfeedback to close
   winFeedbackVisibilityChanged() {
     const promise = new Promise<void>((resolve) => {
-      const d: IReactionDisposer = reaction(
+      const disposer: IReactionDisposer = reaction(
         () => state.winFeedbackVisible,
         (newWF, oldWF) => {
           if (newWF === false && oldWF === true) {
             resolve()
-            d()
+            disposer()
           }
         }
       )
@@ -234,9 +240,6 @@ export class SlotMachine {
     //set running total
     state.setWinRunningTotal(0)
 
-    //set symbol stripe
-    //this.setStripe()
-
     //set new credit
     state.setUserCreditAmount(state.user.credit_amt - state.user.bet_amt)
 
@@ -245,6 +248,7 @@ export class SlotMachine {
 
     //loop through rounds
     for (let index = 0; index < response.rounds.length; index++) {
+      
       this.grid.startSpinReels()
 
       console.log("spin started")
@@ -257,7 +261,7 @@ export class SlotMachine {
       //if not last round put a pause
       if (index < response.rounds.length - 1) {
         await new Promise<void>((resolve) => {
-          setTimeout(() => {
+          Timeout.instantiate(() => {
             resolve()
           }, 750)
         })
@@ -291,20 +295,23 @@ export class SlotMachine {
     }
     console.log("play finished")
 
-    console.log(state)
+    Timeout.clear('spin-timeout',true)
   }
 
   //play 1 round of game
   async playRound() {
+    //spin for a while
     await new Promise<void>((resolve) => {
-      this.timeOuts.push(
-        Timeout.instantiate(() => {
+      Timeout.instantiate(
+        "spin-timeout",
+        () => {
           resolve()
-        }, spinReelTimeout)
+        },
+        spinReelTimeout
       )
     })
 
-    //stop reels
+    //...then stop reels
     await this.grid.stopSpinReels()
 
     //set winning symbols

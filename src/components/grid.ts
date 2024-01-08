@@ -26,21 +26,7 @@ export class Grid extends Container {
     })
   }
 
-  //update all symbols on each reel with symbols from next round
-  // updateSymbols() {
-  //   //update reel symbols
-  //   this.reels.forEach((reel) => {
-  //     //get new stripe
-  //     const stripe = getRandomSymbolStripe(stripeLength)
-
-  //     //insert new round data into stripe, leaving 1 random element at the end of stripe
-  //     //because of soft landing effect
-  //     stripe.splice(stripe.length - 1, 0, ...state.currentRound.reels[reel.reelId])
-  //     reel.updateSymbols(stripe)
-  //   })
-  // }
-
-  updateReels() {
+ updateReels() {
     //update reel symbols
     this.reels.forEach((reel) => {
       //get new stripe index for reel

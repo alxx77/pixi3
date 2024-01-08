@@ -19,8 +19,6 @@ type DeltaPosition = { dx: number; dy: number }
 
 type TargetPosition = { x: number; y: number }
 
-type GeneratorInput = { delta: number; position: TargetPosition | undefined }
-
 //reel class
 export class Reel extends Container {
   private grid: Grid
@@ -32,8 +30,8 @@ export class Reel extends Container {
   clickReelSound: Howl
   stripeIndex: number
   spin: boolean
-  private frameCounter: number
-  private spinSpeed : number
+  private spinSpeed: number
+
   constructor(grid: Grid, reelId: number) {
     super()
     this.grid = grid
@@ -45,9 +43,8 @@ export class Reel extends Container {
     this.blurFilter = new BlurFilter(2)
     this.stripeIndex = 0
     this.spin = false
-    this.frameCounter = 0
     this.spinSpeed = 0
-  
+
     //mask
     const mask = new Sprite(Texture.WHITE)
     mask.width = SYMBOL_WIDTH
@@ -73,6 +70,7 @@ export class Reel extends Container {
     return this.stripeIndex++
   }
 
+  //set symbols on reel
   setSymbols() {
     for (let index = 0; index < reelHeight + 2; index++) {
       this.addSymbol(state.symbolStripe[this.getNextStripeIndex()])
@@ -81,10 +79,12 @@ export class Reel extends Container {
 
   //add a symbol to tail
   addSymbol(symbolName: string): Symbol {
+
     //create new symbol
     const newSymbol = new Symbol(symbolName)
     this.addChild(newSymbol)
 
+    //get correct y position
     if (this.symbols.length === 0) {
       newSymbol.y = (5 - this.symbols.length) * SYMBOL_HEIGHT
     } else {
@@ -106,7 +106,13 @@ export class Reel extends Container {
     const self = this
 
     // //get generator for 1st part of a move
-    let g = this.performMove(spinSpeed / 2,{ x: 0, y: ySoftMoveUpTarget } , self)
+    let g = this.performMove(
+      spinSpeed / 2,
+      true,
+      true,
+      { x: 0, y: ySoftMoveUpTarget },
+      self
+    )
 
     this.spin = false
 
@@ -131,12 +137,10 @@ export class Reel extends Container {
       ticker.start()
     })
 
-    console.log('reel end 1')
-
     this.spinSpeed = spinSpeed / (0.5 + Math.random() * 0.5)
 
     //new gen & ticker for 2nd part of move
-    g = this.performMove(this.spinSpeed, undefined, self)
+    g = this.performMove(this.spinSpeed, true, false, undefined, self)
     this.spin = true
 
     //start blur
@@ -149,21 +153,25 @@ export class Reel extends Container {
     //when gen. is done, destroy cb
     await new Promise<void>((resolve) => {
       ticker.add((delta) => {
-        this.frameCounter++
+
+        //get next value from generator
         step = g.next(delta)
         if (step.done === false) {
           if (step.value) {
             let symbolsToAdd = 0
 
+            //determine correct position of true tail
             const tailYPosition = self.symbols[self.symbols.length - 1].y
 
+            //should new symbol be attached to reel
             const conditionToAddSymbol =
               Math.abs(tailYPosition + step.value.dy) < SYMBOL_HEIGHT &&
               tailYPosition < 0
 
             //if condition is met add symbols
             if (conditionToAddSymbol) {
-              //how many symbols should be added
+
+              //calculate how many symbols should be added
               symbolsToAdd = Math.floor(step.value.dy / SYMBOL_HEIGHT) + 1
 
               //add symbols to reel
@@ -175,6 +183,7 @@ export class Reel extends Container {
               }
             }
 
+            //move all symbols on the reel
             this.symbols.forEach((symbol) => {
               //move each symbol
               if (step.value) {
@@ -202,16 +211,21 @@ export class Reel extends Container {
     })
   }
 
-  async stopReel(){
+  async stopReel() {
 
-    //generator return value
-     let step: IteratorResult<DeltaPosition, void>
-     let ticker = new Ticker()
-     const self = this
+    let step: IteratorResult<DeltaPosition, void>
+    let ticker = new Ticker()
+    const self = this
 
     const tailYPosition = self.symbols[self.symbols.length - 2].y
 
-    const g = this.performMove(this.spinSpeed,{ x: 0, y: tailYPosition * -1 }, self)
+    let g = this.performMove(
+      this.spinSpeed,
+      false,
+      false,
+      { x: 0, y: tailYPosition * -1 + SYMBOL_HEIGHT / 2 },
+      self
+    )
 
     this.spin = false
 
@@ -233,76 +247,74 @@ export class Reel extends Container {
       ticker.start()
     })
 
+    //new gen & ticker for 3rd part of move
+    g = this.performMove(
+      this.spinSpeed / (2 + Math.random() * 2),
+      true,
+      true,
+      { x: 0, y: SYMBOL_HEIGHT * 0.75 },
+      self
+    )
+
+    ticker = new Ticker()
+
+    await new Promise<void>((resolve) => {
+      const t = ticker.add((delta) => {
+        step = g.next(delta)
+
+        if (step.done === false) {
+          this.symbols.forEach((symbol) => {
+            //move each symbol
+            if (step.value) {
+              symbol.y = symbol.y + step.value.dy * -1
+            }
+          })
+        } else {
+          ticker.destroy()
+          resolve()
+        }
+      })
+      ticker.start()
+    })
+
+    //new gen & ticker for 4th part of move
+    g = this.performMove(
+      this.spinSpeed / (3 + Math.random() * 2),
+      true,
+      true,
+      { x: 0, y: SYMBOL_HEIGHT * 0.25 },
+      self
+    )
+    ticker = new Ticker()
+
+    await new Promise<void>((resolve) => {
+      const t = ticker.add((delta) => {
+        step = g.next(delta)
+
+        if (step.done === false) {
+          this.symbols.forEach((symbol) => {
+            //move each symbol
+            if (step.value) {
+              symbol.y = symbol.y + step.value.dy
+            }
+          })
+        } else {
+          this.clickReelSound.play()
+          ticker.destroy()
+          resolve()
+        }
+      })
+      ticker.start()
+    })
+
     this.spinSpeed = 0
   }
-
-
-
-  //new gen & ticker for 3rd part of move
-  // g = this.performMove(
-  //   0,
-  //   0,
-  //   0,
-  //   ySoftLandingMoveUpTarget,
-  //   speed / (4 + Math.random() * 2),
-  //   self
-  // )
-  // ticker = new Ticker()
-
-  // await new Promise<void>((resolve) => {
-  //   const t = ticker.add((delta) => {
-  //     step = g.next(delta)
-
-  //     if (step.done === false) {
-  //       this.symbols.forEach((symbol) => {
-  //         //move each symbol
-  //         if (step.value) {
-  //           symbol.y = symbol.y + step.value.dy * -1
-  //         }
-  //       })
-  //     } else {
-  //       ticker.destroy()
-  //       resolve()
-  //     }
-  //   })
-  //   ticker.start()
-  // })
-
-  //new gen & ticker for 4th part of move
-  // g = this.performMove(
-  //   0,
-  //   0,
-  //   0,
-  //   ySoftLandingFinalMoveDownTarget,
-  //   speed / (12 + Math.random() * 5),
-  //   self
-  // )
-  // ticker = new Ticker()
-
-  // await new Promise<void>((resolve) => {
-  //   const t = ticker.add((delta) => {
-  //     step = g.next(delta)
-
-  //     if (step.done === false) {
-  //       this.symbols.forEach((symbol) => {
-  //         //move each symbol
-  //         if (step.value) {
-  //           symbol.y = symbol.y + step.value.dy
-  //         }
-  //       })
-  //     } else {
-  //       this.clickReelSound.play()
-  //       ticker.destroy()
-  //       resolve()
-  //     }
-  //   })
-  //   ticker.start()
-  // })
-
 
   //generator that calculates move
   performMove = function* (
     speed: number,
+    performAccelerationSpeedCorrection: boolean,
+    performDecelerationSpeedCorrection: boolean,
     target: TargetPosition | undefined,
     self: Reel
   ): Generator<DeltaPosition, void, number> {
@@ -333,7 +345,7 @@ export class Reel extends Container {
     let avg2 = 0
     let avg1 = 0
 
-    if(target){
+    if (target) {
       remainingPathX = target.x
       remainingPathY = target.y
       initXDist = remainingPathX
@@ -355,29 +367,35 @@ export class Reel extends Container {
     ) {
       //get appropriate speed for position
       //depending whether it is start, middle or end of movement
-      // if (spin === false) {
-      //   pathYPerformed = remainingPathY / initYDist
-      //   switch (true) {
-      //     case pathYPerformed >= 0 && pathYPerformed < 0.025:
-      //       speedCorrection = 0.45
-      //       break
+      if (self.spin === false) {
+        pathYPerformed = remainingPathY / initYDist
 
-      //     case pathYPerformed >= 0.025 && pathYPerformed < 0.05:
-      //       speedCorrection = 0.75
-      //       break
+        //when starting
+        if (performAccelerationSpeedCorrection) {
+          switch (true) {
+            case pathYPerformed >= 0 && pathYPerformed < 0.025:
+              speedCorrection = 0.45
+              break
 
-      //     case pathYPerformed >= 0.05 && pathYPerformed <= 0.95:
-      //       speedCorrection = 1
-      //       break
-      //     case pathYPerformed >= 0.95 && pathYPerformed < 0.975:
-      //       speedCorrection = 0.45
-      //       break
+            case pathYPerformed >= 0.025 && pathYPerformed < 0.05:
+              speedCorrection = 0.75
+              break
+          }
+        }
 
-      //     case pathYPerformed >= 0.975 && pathYPerformed <= 1:
-      //       speedCorrection = 0.25
-      //       break
-      //   }
-      // }
+        //when stopping
+        if (performDecelerationSpeedCorrection) {
+          switch (true) {
+            case pathYPerformed >= 0.95 && pathYPerformed < 0.975:
+              speedCorrection = 0.45
+              break
+
+            case pathYPerformed >= 0.975 && pathYPerformed <= 1:
+              speedCorrection = 0.25
+              break
+          }
+        }
+      }
 
       //nominal step (non - time adjusted)
       nominalDX = speed * speedCorrection
@@ -423,8 +441,7 @@ export class Reel extends Container {
 
       //return value & get new input data
       delta = yield { dx: actualDX, dy: actualDY }
-
-     }
+    }
   }
 
   applyBlur = () => {
