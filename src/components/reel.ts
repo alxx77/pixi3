@@ -106,7 +106,7 @@ export class Reel extends Container {
     const self = this
 
     // //get generator for 1st part of a move
-    let g = this.performMove(
+    let g = this.calculateReelPosition(
       spinSpeed / 2,
       true,
       true,
@@ -140,7 +140,7 @@ export class Reel extends Container {
     this.spinSpeed = spinSpeed / (0.5 + Math.random() * 0.5)
 
     //new gen & ticker for 2nd part of move
-    g = this.performMove(this.spinSpeed, true, false, undefined, self)
+    g = this.calculateReelPosition(this.spinSpeed, true, false, undefined, self)
     this.spin = true
 
     //start blur
@@ -219,7 +219,7 @@ export class Reel extends Container {
 
     const tailYPosition = self.symbols[self.symbols.length - 2].y
 
-    let g = this.performMove(
+    let g = this.calculateReelPosition(
       this.spinSpeed,
       false,
       false,
@@ -248,7 +248,7 @@ export class Reel extends Container {
     })
 
     //new gen & ticker for 3rd part of move
-    g = this.performMove(
+    g = this.calculateReelPosition(
       this.spinSpeed / (2 + Math.random() * 2),
       true,
       true,
@@ -278,7 +278,7 @@ export class Reel extends Container {
     })
 
     //new gen & ticker for 4th part of move
-    g = this.performMove(
+    g = this.calculateReelPosition(
       this.spinSpeed / (3 + Math.random() * 2),
       true,
       true,
@@ -311,7 +311,7 @@ export class Reel extends Container {
   }
 
   //generator that calculates move
-  performMove = function* (
+  calculateReelPosition = function* (
     speed: number,
     performAccelerationSpeedCorrection: boolean,
     performDecelerationSpeedCorrection: boolean,
