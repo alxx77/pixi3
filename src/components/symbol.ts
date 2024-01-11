@@ -1,6 +1,7 @@
 import { Sprite, utils, ColorMatrixFilter, Point } from "pixi.js"
 import { SmartContainer } from "./smartContainer"
 import { state } from "../state"
+import Timeout, { TimeoutInstance } from "smart-timeout"
 
 //symbol class
 export class Symbol extends SmartContainer {
@@ -33,33 +34,10 @@ export class Symbol extends SmartContainer {
   }
 
   async flicker(cycles: number, timeMs: number) {
-    for (let i = 0; i < cycles; i++) {
-      this.showHiSprite()
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve()
-        }, timeMs)
-      })
-      await new Promise<void>((resolve) => {
-        this.showLowSprite()
-        setTimeout(() => {
-          resolve()
-        }, timeMs)
-      })
-      await new Promise<void>((resolve) => {
-        this.showDefaultSprite()
-        setTimeout(() => {
-          resolve()
-        }, timeMs)
-      })
-    }
-  }
-
-  async flicker1(cycles: number, timeMs: number) {
     const self = this
-    const g = this.flickerG(self, cycles, timeMs)
+    const g = this.flickerSequenceGenerator(self, cycles, timeMs)
 
-     return new Promise<void>(async (resolve) => {
+    return new Promise<void>(async (resolve) => {
       while (true) {
         let next = g.next(state.skipFeature)
         if (next.done === false) {
@@ -73,7 +51,7 @@ export class Symbol extends SmartContainer {
   }
 
   //generate sequence of promises
-  flickerG = function* (
+  flickerSequenceGenerator = function* (
     self: Symbol,
     cycles: number,
     timeMs: number
@@ -88,7 +66,7 @@ export class Symbol extends SmartContainer {
       for (const fn of fns) {
         earlyExit = yield new Promise<void>((resolve) => {
           fn()
-          setTimeout(() => {
+          Timeout.instantiate(() => {
             resolve()
           }, timeMs)
         })
@@ -96,9 +74,9 @@ export class Symbol extends SmartContainer {
         if (earlyExit === true) {
           yield new Promise<void>((resolve) => {
             fns[2]()
-            setTimeout(() => {
+            Timeout.instantiate(() => {
               resolve()
-            }, timeMs)
+            }, 0)
           })
           return
         }

@@ -12,7 +12,6 @@ import { WinBoard } from "./components/winBoard"
 import { Winfeedback } from "./components/winFeedback"
 
 class Store {
-  //_initialStripes: string[][]
   _isPlayingRound: boolean
   _user: User
   _response: Response
@@ -29,7 +28,6 @@ class Store {
   _symbolStripe: string[]
 
   constructor() {
-    //this._initialStripes = []
     this._isPlayingRound = false
     this._winFeedbackVisible = false
     this._user = {} as User

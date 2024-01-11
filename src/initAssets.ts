@@ -155,8 +155,6 @@ async function loadAssets() {
 
   await Assets.init({ manifest })
 
-  console.log("manifest loaded")
-
   // Load a bundle...
   await Assets.loadBundle("symbols")
 
@@ -171,4 +169,6 @@ async function loadAssets() {
 
 export async function initAssets() {
   await loadAssets()
+
+  console.log("assets loaded")
 }

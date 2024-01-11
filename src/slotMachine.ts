@@ -10,21 +10,16 @@ import {
 
 import { Background } from "./components/background"
 import { GamePanel } from "./components/gamePanel"
-import {
-  reelIds,
-  reelHeight,
-  soundSource,
-  symbolStripeLength,
-  spinReelTimeout,
-} from "./variables"
+import { soundSource, symbolStripeLength } from "./settings"
 import { Winfeedback } from "./components/winFeedback"
 import { WinBoard } from "./components/winBoard"
 import { Effects } from "./components/effects"
 import { Howl } from "howler"
 import { reaction, IReactionDisposer } from "mobx"
 import { Symbol } from "./components/symbol"
-import { settings } from "./settings"
+import { sound } from "./settings"
 import Timeout, { TimeoutInstance } from "smart-timeout"
+import { spinReelTimeout } from "./variables"
 
 export type WinSymbolEntry = {
   symbol: Symbol
@@ -35,7 +30,7 @@ export type WinSymbolList = {
   data: WinSymbolEntry[]
 }
 
-//main high logic class
+//high level game logic
 export class SlotMachine {
   public background: Background
   public grid: Grid
@@ -92,7 +87,6 @@ export class SlotMachine {
     //change device orientation
     window.addEventListener("orientationchange", updateView)
 
-    //listen for space
     window.addEventListener("keydown", function (event) {
       if (event.key === " " && state.isSpaceBarKeyDown === false) {
         state.setSpaceBarKeyDown(true)
@@ -106,7 +100,7 @@ export class SlotMachine {
       }
     })
 
-    //check space bar presses
+    //react to space bar pressed
     reaction(
       () => state.isSpaceBarKeyDown,
       (newVal, oldVal) => {
@@ -124,7 +118,7 @@ export class SlotMachine {
       }
     )
 
-    //watch for play requests
+    //react to play requests
     reaction(
       () => state.playRoundRequest,
       (newVal, oldVal) => {
@@ -148,6 +142,7 @@ export class SlotMachine {
       }
     )
 
+    //if skip feature is requested, cancel timeouts
     reaction(
       () => state.skipFeature,
       (newVal, oldVal) => {
@@ -168,7 +163,7 @@ export class SlotMachine {
     //instantiate sounds
     this.midWinSound = new Howl({
       src: [soundSource.midWin],
-      volume: settings.sound.soundFX.volume,
+      volume: sound.soundFX.volume,
       loop: false,
       sprite: {
         sound1: [0, 4984],
@@ -177,17 +172,17 @@ export class SlotMachine {
 
     this.midWinSound.on("fade", () => {
       self.midWinSound.stop()
-      self.midWinSound.volume(settings.sound.soundFX.volume)
+      self.midWinSound.volume(sound.soundFX.volume)
     })
 
     this.ambienceSound = new Howl({
       src: [soundSource.ambience],
-      volume: settings.sound.ambienceSound.volume,
+      volume: sound.ambienceSound.volume,
       loop: true,
     })
 
     //repeat
-    if (settings.sound.ambienceSound.play) {
+    if (sound.ambienceSound.play) {
       setInterval(() => {
         this.ambienceSound.play()
       }, 1000000)
@@ -248,7 +243,6 @@ export class SlotMachine {
 
     //loop through rounds
     for (let index = 0; index < response.rounds.length; index++) {
-      
       this.grid.startSpinReels()
 
       console.log("spin started")
@@ -295,7 +289,7 @@ export class SlotMachine {
     }
     console.log("play finished")
 
-    Timeout.clear('spin-timeout',true)
+    Timeout.clear("spin-timeout", true)
   }
 
   //play 1 round of game
@@ -334,7 +328,7 @@ export class SlotMachine {
       await Promise.all([p1, p2])
 
       if (this.midWinSound.playing() === true) {
-        this.midWinSound.fade(settings.sound.soundFX.volume, 0, 1000)
+        this.midWinSound.fade(sound.soundFX.volume, 0, 1000)
       }
     }
   }

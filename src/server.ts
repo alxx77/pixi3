@@ -1,6 +1,6 @@
 import { symbolList, symbolWeightMap } from "./initAssets"
 
-import { reelIds, reelHeight } from "./variables"
+import { reelIds, reelHeight } from "./settings"
 
 import { state } from "./state"
 

@@ -1,7 +1,7 @@
 import { Container, Text } from "pixi.js"
 import { state, components } from "../state"
 import { SmartContainer } from "./smartContainer"
-import { fontStyles } from "../variables"
+import { fontStyles } from "../settings"
 import { reaction } from "mobx"
 import Timeout, { TimeoutInstance } from "smart-timeout"
 

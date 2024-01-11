@@ -1,7 +1,7 @@
 import { Sprite, utils, Text, Container } from "pixi.js"
 import { components, state } from "../state"
 import * as TWEEN from "@tweenjs/tween.js"
-import { fontStyles, soundSource } from "../variables"
+import { fontStyles, soundSource } from "../settings"
 import { Howl } from "howler"
 import Timeout, { TimeoutInstance } from "smart-timeout"
 

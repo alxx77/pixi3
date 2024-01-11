@@ -6,10 +6,10 @@ import { Howl } from "howler"
 import {
   soundSource,
   reelHeight,
-  spinSpeed,
   symbolStripeLength,
-} from "../variables"
+} from "../settings"
 import { state } from "../state"
+import { spinSpeed } from "../variables"
 
 //linear interpolation
 const lerp = (x: number, y: number, a: number) => x * (1 - a) + y * a
@@ -120,10 +120,10 @@ export class Reel extends Container {
     //and loop until generator is done
     //when gen. is done, destroy cb
     await new Promise<void>((resolve) => {
-      ticker.add((delta) => {
+      ticker.add(function(delta){
         step = g.next(delta)
         if (step.done === false) {
-          this.symbols.forEach((symbol) => {
+          self.symbols.forEach((symbol) => {
             //move each symbol
             if (step.value) {
               symbol.y = symbol.y + step.value.dy * -1
@@ -152,7 +152,7 @@ export class Reel extends Container {
     //and loop until generator is done
     //when gen. is done, destroy cb
     await new Promise<void>((resolve) => {
-      ticker.add((delta) => {
+      ticker.add(function(delta){
 
         //get next value from generator
         step = g.next(delta)
@@ -179,12 +179,12 @@ export class Reel extends Container {
                 const s = self.addSymbol(
                   state.symbolStripe[self.getNextStripeIndex()]
                 )
-                s.filters = [this.blurFilter]
+                s.filters = [self.blurFilter]
               }
             }
 
             //move all symbols on the reel
-            this.symbols.forEach((symbol) => {
+            self.symbols.forEach((symbol) => {
               //move each symbol
               if (step.value) {
                 symbol.y = symbol.y + step.value.dy
@@ -230,10 +230,10 @@ export class Reel extends Container {
     this.spin = false
 
     await new Promise<void>((resolve) => {
-      ticker.add((delta) => {
+      ticker.add(function(delta){
         step = g.next(delta)
         if (step.done === false) {
-          this.symbols.forEach((symbol) => {
+          self.symbols.forEach((symbol) => {
             //move each symbol
             if (step.value) {
               symbol.y = symbol.y + step.value.dy
@@ -259,11 +259,11 @@ export class Reel extends Container {
     ticker = new Ticker()
 
     await new Promise<void>((resolve) => {
-      const t = ticker.add((delta) => {
+      const t = ticker.add(function(delta){
         step = g.next(delta)
 
         if (step.done === false) {
-          this.symbols.forEach((symbol) => {
+          self.symbols.forEach((symbol) => {
             //move each symbol
             if (step.value) {
               symbol.y = symbol.y + step.value.dy * -1
@@ -288,18 +288,18 @@ export class Reel extends Container {
     ticker = new Ticker()
 
     await new Promise<void>((resolve) => {
-      const t = ticker.add((delta) => {
+      const t = ticker.add(function(delta) {
         step = g.next(delta)
 
         if (step.done === false) {
-          this.symbols.forEach((symbol) => {
+          self.symbols.forEach((symbol) => {
             //move each symbol
             if (step.value) {
               symbol.y = symbol.y + step.value.dy
             }
           })
         } else {
-          this.clickReelSound.play()
+          self.clickReelSound.play()
           ticker.destroy()
           resolve()
         }

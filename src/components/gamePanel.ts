@@ -1,7 +1,7 @@
 import { Container, utils, Sprite, Text, ColorMatrixFilter } from "pixi.js"
 import { components, state } from "../state"
 import { updateUserBetAmount } from "../server"
-import { fontStyles, soundSource } from "../variables"
+import { fontStyles, soundSource } from "../settings"
 import { Howl } from "howler"
 import { reaction } from "mobx"
 

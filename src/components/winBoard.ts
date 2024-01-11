@@ -1,7 +1,6 @@
 import { Sprite, utils, Container, Text } from "pixi.js"
 import { components, state } from "../state"
-import { fontStyles } from "../variables"
-import { Grid } from "./grid"
+import { fontStyles } from "../settings"
 import { reaction } from "mobx"
 
 export class WinBoard extends Container {

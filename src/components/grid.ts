@@ -1,16 +1,9 @@
 import { Container } from "pixi.js"
 import { Reel } from "./reel"
 import { state } from "../state"
-import { getRandomSymbolStripe } from "../server"
-import {
-  reelHeight,
-  reelIds,
-  spinSpeed,
-  stripeLength,
-  symbolStripeLength,
-} from "../variables"
-import { reaction } from "mobx"
+import { reelHeight, reelIds, symbolStripeLength } from "../settings"
 import { SYMBOL_HEIGHT } from "../initAssets"
+import Timeout, { TimeoutInstance } from "smart-timeout"
 
 //grid class
 export class Grid extends Container {
@@ -26,7 +19,7 @@ export class Grid extends Container {
     })
   }
 
- updateReels() {
+  updateReels() {
     //update reel symbols
     this.reels.forEach((reel) => {
       //get new stripe index for reel
@@ -45,7 +38,7 @@ export class Grid extends Container {
       //pause if not 1st reel
       if (reelId > 0) {
         await new Promise<void>((resolve) => {
-          setTimeout(() => {
+          Timeout.instantiate(() => {
             resolve()
           }, Math.random() * 125)
         })
@@ -80,7 +73,7 @@ export class Grid extends Container {
       promises.push(this.reels[reelId].stopReel())
     }
 
-    //wait for all reels to start
+    //wait for all reels to stop
     await Promise.all(promises)
 
     for (const reelId of reelIds) {
@@ -110,22 +103,26 @@ export class Grid extends Container {
       //for each payout
       for (const winSymbolEntry of payoutsPerRoundList[i].data) {
         //flicker winning symbols
-        promises.push(winSymbolEntry.symbol.flicker1(3, 100))
+        promises.push(winSymbolEntry.symbol.flicker(3, 100))
         //make a little pause after
-        await new Promise<void>((resolve) => {
-          setTimeout(() => {
-            resolve()
-          }, 75 + Math.random() * 75)
-        })
+        if (state.skipFeature === false) {
+          await new Promise<void>((resolve) => {
+            Timeout.instantiate(() => {
+              resolve()
+            }, 75 + Math.random() * 75)
+          })
+        }
       }
 
       //pause between multiple wins if not last win
       if (i < payoutsPerRoundList.length - 1) {
-        await new Promise<void>((resolve) => {
-          setTimeout(() => {
-            resolve()
-          }, 75 + Math.random() * 75)
-        })
+        if (state.skipFeature === false) {
+          await new Promise<void>((resolve) => {
+            Timeout.instantiate(() => {
+              resolve()
+            }, 75 + Math.random() * 75)
+          })
+        }
       }
 
       //wait for flickering to finish
@@ -173,7 +170,6 @@ export class Grid extends Container {
       this.y = (height - gridHeight) / 4
     } else {
       this.y = (height - gridHeight) / 3
-      //this.y = Math.max(height * 0.34 - gridHeight / 2, 0)
     }
   }
 }
