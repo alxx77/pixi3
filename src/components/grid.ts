@@ -130,46 +130,14 @@ export class Grid extends Container {
     }
   }
 
-  updateLayout(width: number, height: number) {
-    // desired w/h ratio of grid
-    let gridRatio = 1
-
-    let scale = 0.5
-
-    // parent
-    let layoutRatio = width / height
-
-    // grid dimensions
-    let gridHeight = 0
-    let gridWidth = 0
-
-    //if renderer aspect ratio is wider, game height is first calculated
-    if (layoutRatio > gridRatio) {
-      gridHeight = Math.max(height * 0.75, 250)
-
-      //recalculate width
-      gridWidth = gridHeight * gridRatio
-    } else {
-      //if renderer aspect ratio is more narrow
-      //means width is constraining factor and is calculated first
-      gridWidth = Math.max(Math.min(width, 1225 * scale), 240) * 0.8
-
-      //recalculate height
-      gridHeight = gridWidth / gridRatio
-    }
-
-    //set stage dimensions
-    this.width = gridWidth
-    this.height = gridHeight
+  updateLayout(rendererWidth: number, rendererHeight: number) {
+    const scaleFactorX = Math.max(rendererWidth, 240) / 1300
+    const scaleFactorY = Math.max(rendererHeight, 240) / 1750
+    const scaleFactor = Math.min(scaleFactorX, scaleFactorY)
+    this.scale.set(scaleFactor)
 
     //set x pos
-    this.x = (width - gridWidth) / 2
-
-    //set y pos
-    if (width > height) {
-      this.y = (height - gridHeight) / 4
-    } else {
-      this.y = (height - gridHeight) / 3
-    }
+    this.x = (rendererWidth - this.width) / 2
+    this.y = (rendererHeight - this.height) / 3
   }
 }

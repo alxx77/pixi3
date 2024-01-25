@@ -152,10 +152,8 @@ export class GamePanel extends Container {
   }
 
   updateLayout(width: number, height: number) {
-    this.container.width = components.grid.width
-    this.container.scale.y = this.container.scale.x
-
-    this.container.x = components.grid.x
-    this.container.y = components.grid.y + components.grid.height
+    this.scale = components.grid.scale
+    this.x = components.grid.x
+    this.y = components.grid.y + components.grid.height
   }
 }

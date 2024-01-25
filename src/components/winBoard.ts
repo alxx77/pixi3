@@ -42,24 +42,23 @@ export class WinBoard extends Container {
   }
 
   updateLayout(width: number, height: number) {
-    //this.container.scale.set(0.5)
     if (width / height >= 1) {
       this.winBoardSprite.texture = utils.TextureCache["woodboard_prt"]
       //landscape
-      this.container.width = components.grid.width / 4
-      this.container.scale.y = this.container.scale.x
+      this.width = components.grid.width / 4
+      this.scale.y = this.scale.x
 
-      this.container.x = components.grid.x - this.container.width / 2 - 10
-      this.container.y = components.grid.y + this.container.height / 2
+      this.x = components.grid.x - this.width / 2 - 10
+      this.y = components.grid.y + this.height / 2
     } else {
       //portrait
       this.winBoardSprite.texture = utils.TextureCache["woodboard_lnd"]
 
-      this.container.width = components.grid.width / 2
-      this.container.scale.y = this.container.scale.x
+      this.width = components.grid.width / 2
+      this.scale.y = this.scale.x
 
-      this.container.x = components.grid.x + components.grid.width / 2
-      this.container.y = components.grid.y - this.container.height / 2 - 5
+      this.x = components.grid.x + components.grid.width / 2
+      this.y = components.grid.y - this.height / 2 - 5
     }
   }
 }
