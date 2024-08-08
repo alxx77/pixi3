@@ -14721,10 +14721,10 @@ class Reel extends pixi_js__WEBPACK_IMPORTED_MODULE_0__.Container {
             }
         };
         this.applyBlur = () => {
-            this.symbols.forEach((s) => (s.filters = [this.blurFilter]));
+            //this.symbols.forEach((s) => (s.filters = [this.blurFilter]))
         };
         this.clearBlur = () => {
-            this.symbols.forEach((s) => (s.filters = []));
+            //this.symbols.forEach((s) => (s.filters = []))
         };
         this.grid = grid;
         this.name = "reel " + reelId;
@@ -49145,4 +49145,4 @@ __webpack_require__.r(__webpack_exports__);
 
 /******/ })()
 ;
-//# sourceMappingURL=bundle8bd0da79ec7b31fe819a.js.map
+//# sourceMappingURL=bundle88748c19db5096129a9a.js.map

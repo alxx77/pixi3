@@ -445,10 +445,10 @@ export class Reel extends Container {
   }
 
   applyBlur = () => {
-    this.symbols.forEach((s) => (s.filters = [this.blurFilter]))
+    //this.symbols.forEach((s) => (s.filters = [this.blurFilter]))
   }
 
   clearBlur = () => {
-    this.symbols.forEach((s) => (s.filters = []))
+    //this.symbols.forEach((s) => (s.filters = []))
   }
 }
